@@ -107,7 +107,7 @@
     <p>Text limit is 11 characters!</p>
     <button id="closePopup">Close</button>
   </div>
-  <script>
+   <script>
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
     const input = document.getElementById('bannerText');
@@ -116,7 +116,6 @@
     const closePopup = document.getElementById('closePopup');
 
     const bgImageSrc = 'https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true';
-
     const background = new Image();
     background.src = bgImageSrc;
 
@@ -126,7 +125,13 @@
     });
 
     closePopup.addEventListener('click', () => popup.classList.remove('active'));
-    downloadButton.addEventListener('click', downloadImage);
+
+    downloadButton.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'Twitter_Banner.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
 
     function updateCanvas() {
       const text = input.value;
@@ -137,7 +142,6 @@
         return;
       }
 
-      background.onload = () => drawCanvas(text);
       drawCanvas(text);
     }
 
@@ -160,14 +164,10 @@
       return Math.max(230 - length * 10, 130);
     }
 
-    function downloadImage() {
-      const link = document.createElement('a');
-      link.download = 'Twitter_Banner.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }
-
-    updateCanvas();
+    
+    background.onload = () => {
+      updateCanvas();
+    };
   </script>
 </body>
 </html>

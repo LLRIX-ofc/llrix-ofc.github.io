@@ -51,6 +51,13 @@
       outline: none;
     }
 
+    .input-section p {
+      color: #ff4d4d;
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
+    }
+
     .input-section button {
       margin-top: 10px;
       padding: 10px 20px;
@@ -91,8 +98,9 @@
   <div class="container">
     <h1>Twitter Banner Generator</h1>
     <div class="input-section">
-      <label for="bannerText">Enter Text:</label>
-      <input type="text" id="bannerText" placeholder="Type your text here..." maxlength="50">
+      <label for="bannerText">Enter Text (Max 11 Characters):</label>
+      <input type="text" id="bannerText" placeholder="Type your text here..." maxlength="11">
+      <p id="errorMessage">Character limit exceeded! Max 11 characters allowed.</p>
       <button id="generateButton">Done</button>
     </div>
     <div class="preview-section">
@@ -108,6 +116,7 @@
 
     // Variables
     const inputField = document.getElementById("bannerText");
+    const errorMessage = document.getElementById("errorMessage");
     const generateButton = document.getElementById("generateButton");
 
     // Draw the initial canvas
@@ -133,9 +142,9 @@
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
 
-          // Apply shadow settings
+          // Apply shadow settings (blurry shadow)
           ctx.shadowColor = "rgba(0, 0, 0, 0.75)";
-          ctx.shadowBlur = 20;
+          ctx.shadowBlur = 30; // Increased blur
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 25;
 
@@ -147,11 +156,21 @@
     // Live preview
     inputField.addEventListener("input", () => {
       const text = inputField.value;
-      drawCanvas(text);
+      if (text.length > 11) {
+        errorMessage.style.display = "block";
+      } else {
+        errorMessage.style.display = "none";
+        drawCanvas(text);
+      }
     });
 
     // Generate and download the final image
     generateButton.addEventListener("click", () => {
+      const text = inputField.value;
+      if (text.length > 11) {
+        alert("Text exceeds the 11-character limit. Please shorten it.");
+        return;
+      }
       const link = document.createElement("a");
       link.download = "twitter-banner.png";
       link.href = canvas.toDataURL();

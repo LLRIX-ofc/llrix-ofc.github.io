@@ -7,79 +7,101 @@
     <style>
         body {
             margin: 0;
-            padding: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
-            background-color: #121212;
-            font-family: 'Aiden', sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
         }
-        #banner {
+        #banner-container {
             position: relative;
             width: 1500px;
             height: 500px;
-            background-image: url('https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true');
+            background: url('https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true') no-repeat center center;
             background-size: cover;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
+            margin-bottom: 20px;
         }
-        #text {
+        #banner-text {
             position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Aiden', sans-serif;
             color: black;
-            text-align: center;
-            text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.7);
+            text-shadow: 3px 3px 5px rgba(0,0,0,0.3);
         }
-        #input {
-            position: absolute;
-            bottom: 20px;
-            width: 300px;
+        input[type="text"] {
             padding: 10px;
-            font-size: 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
         }
-        #done {
-            margin-top: 20px;
+        button {
             padding: 10px 20px;
-            font-size: 20px;
+            margin-top: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #444;
+            color: white;
             cursor: pointer;
         }
+        #popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+        }
     </style>
-    <link href="https://github.com/LLRIX-ofc/Banners/raw/refs/heads/main/Aiden.ttf" rel="stylesheet" type="text/css">
 </head>
 <body>
-    <div id="banner">
-        <div id="text">Your Text Here</div>
-        <input type="text" id="input" maxlength="11" placeholder="Type your text here...">
+    <div id="banner-container">
+        <div id="banner-text"></div>
     </div>
-    <button id="done">Done</button>
+    <input type="text" id="input-text" maxlength="11" placeholder="Enter text (max 11 chars)">
+    <button onclick="downloadImage()">Done</button>
+    <div id="popup">Character limit is 11.</div>
 
     <script>
-        const input = document.getElementById('input');
-        const text = document.getElementById('text');
-        const doneButton = document.getElementById('done');
-        const banner = document.getElementById('banner');
+        const inputText = document.getElementById('input-text');
+        const bannerText = document.getElementById('banner-text');
+        const popup = document.getElementById('popup');
 
-        input.addEventListener('input', () => {
-            if (input.value.length > 11) {
-                alert('Character limit is 11');
-                input.value = input.value.slice(0, 11);
+        inputText.oninput = function() {
+            let text = inputText.value;
+            if (text.length > 11) {
+                showPopup();
+                return;
             }
-            const size = Math.max(10, 230 - (input.value.length - 1) * 10);
-            text.style.fontSize = size + 'px';
-            text.textContent = input.value;
-        });
+            let textSize = Math.max(230 - (text.length - 1) * 10, 120);
+            bannerText.style.fontSize = textSize + 'px';
+            bannerText.textContent = text;
+        };
 
-        doneButton.addEventListener('click', () => {
-            html2canvas(banner).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'banner.png';
+        function showPopup() {
+            popup.style.display = 'block';
+            setTimeout(() => popup.style.display = 'none', 2000);
+        }
+
+        function downloadImage() {
+            html2canvas(document.getElementById('banner-container')).then(canvas => {
+                let link = document.createElement('a');
+                link.download = 'twitter-banner.png';
                 link.href = canvas.toDataURL();
                 link.click();
             });
-        });
+        }
     </script>
+
+    <!-- Include html2canvas library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
 </body>
 </html>

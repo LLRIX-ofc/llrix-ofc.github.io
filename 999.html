@@ -98,7 +98,7 @@
     <canvas id="previewCanvas" width="1500" height="500"></canvas>
     <div class="input-wrapper">
       <input type="text" id="bannerText" maxlength="11" placeholder="Enter your text (11 max)">
-      <button id="doneButton">Done</button>
+      <button id="downloadButton">Done</button>
     </div>
   </div>
   <div class="popup" id="popup">
@@ -109,7 +109,7 @@
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
     const input = document.getElementById('bannerText');
-    const doneButton = document.getElementById('doneButton');
+    const downloadButton = document.getElementById('downloadButton');
     const popup = document.getElementById('popup');
     const closePopup = document.getElementById('closePopup');
 
@@ -120,10 +120,7 @@
 
     input.addEventListener('input', updateCanvas);
     closePopup.addEventListener('click', () => popup.classList.remove('active'));
-
-    doneButton.addEventListener('click', () => {
-      // Intentionally does nothing
-    });
+    downloadButton.addEventListener('click', downloadImage);
 
     function updateCanvas() {
       const text = input.value;
@@ -155,6 +152,13 @@
 
     function calculateFontSize(length) {
       return Math.max(230 - length * 10, 130);
+    }
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'Twitter_Banner.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     }
 
     updateCanvas(); // Initial render

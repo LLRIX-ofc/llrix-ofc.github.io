@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twitter Banner Generator</title>
+  <style>
+    /* General reset */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #1a1a1a;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    /* Main container */
+    .container {
+      text-align: center;
+      width: 90%;
+      max-width: 800px;
+    }
+
+    /* Header */
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #ffffff;
+    }
+
+    /* Input Section */
+    .input-section {
+      margin-bottom: 20px;
+    }
+
+    .input-section label {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+
+    .input-section input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+
+    .input-section button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #ffffff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .input-section button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Preview Section */
+    .preview-section {
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 800px;
+      height: 300px;
+      background: url('https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true') no-repeat center;
+      background-size: cover;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Twitter Banner Generator</h1>
+    <div class="input-section">
+      <label for="bannerText">Enter Text:</label>
+      <input type="text" id="bannerText" placeholder="Type your text here..." maxlength="50">
+      <button id="generateButton">Done</button>
+    </div>
+    <div class="preview-section">
+      <canvas id="bannerCanvas"></canvas>
+    </div>
+  </div>
+  <script>
+    // Font URL
+    const fontUrl = "https://github.com/LLRIX-ofc/Banner-Gen/raw/refs/heads/main/Aiden.woff";
+
+    // Load custom font
+    const customFont = new FontFace("Aiden", `url(${fontUrl})`);
+    customFont.load().then((font) => {
+      document.fonts.add(font);
+    });
+
+    // Canvas setup
+    const canvas = document.getElementById("bannerCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = 1500;
+    canvas.height = 500;
+
+    // Variables
+    const inputField = document.getElementById("bannerText");
+    const generateButton = document.getElementById("generateButton");
+
+    // Draw the initial canvas
+    function drawCanvas(text = "") {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw the background
+      const background = new Image();
+      background.src = "https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true";
+      background.onload = () => {
+        ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+        // Draw the text
+        if (text) {
+          const maxFontSize = 230;
+          const minFontSize = 10;
+          const textLength = text.length;
+          const fontSize = Math.max(maxFontSize - textLength * 10, minFontSize);
+
+          ctx.font = `${fontSize}px Aiden`;
+          ctx.fillStyle = "#000000";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+
+          // Apply shadow settings
+          ctx.shadowColor = "rgba(0, 0, 0, 0.75)";
+          ctx.shadowBlur = 20;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 25;
+
+          ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+        }
+      };
+    }
+
+    // Live preview
+    inputField.addEventListener("input", () => {
+      const text = inputField.value;
+      drawCanvas(text);
+    });
+
+    // Generate and download the final image
+    generateButton.addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "twitter-banner.png";
+      link.href = canvas.toDataURL();
+      link.click();
+    });
+
+    // Initial call to draw canvas
+    drawCanvas();
+  </script>
+</body>
+</html>

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Twitter Banner Generator</title>
+  <title>999</title>
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/LLRIX-ofc/Banner-Gen/refs/heads/main/999.png">
   <style>
     @font-face {
       font-family: 'Aiden';
@@ -53,6 +54,7 @@
       text-align: center;
       background-color: #1e1e1e;
       color: #fff;
+      text-transform: uppercase;
     }
 
     input[type="text"]::placeholder {
@@ -94,7 +96,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Twitter Banner Generator</h1>
+    <h1>999 Banner</h1>
     <canvas id="previewCanvas" width="1500" height="500"></canvas>
     <div class="input-wrapper">
       <input type="text" id="bannerText" maxlength="11" placeholder="Enter your text (11 max)">
@@ -118,7 +120,11 @@
     const background = new Image();
     background.src = bgImageSrc;
 
-    input.addEventListener('input', updateCanvas);
+    input.addEventListener('input', () => {
+      input.value = input.value.toUpperCase(); // Convert text to uppercase
+      updateCanvas();
+    });
+
     closePopup.addEventListener('click', () => popup.classList.remove('active'));
     downloadButton.addEventListener('click', downloadImage);
 

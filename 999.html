@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Twitter Banner Generator</title>
   <style>
+    @font-face {
+      font-family: 'Aiden';
+      src: url('Aiden.ttf') format('truetype');
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -93,7 +98,7 @@
     <canvas id="previewCanvas" width="1500" height="500"></canvas>
     <div class="input-wrapper">
       <input type="text" id="bannerText" maxlength="11" placeholder="Enter your text (11 max)">
-      <button id="downloadButton">Done</button>
+      <button id="doneButton">Done</button>
     </div>
   </div>
   <div class="popup" id="popup">
@@ -104,25 +109,21 @@
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
     const input = document.getElementById('bannerText');
-    const downloadButton = document.getElementById('downloadButton');
+    const doneButton = document.getElementById('doneButton');
     const popup = document.getElementById('popup');
     const closePopup = document.getElementById('closePopup');
 
     const bgImageSrc = 'https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true';
-    const fontUrl = 'https://github.com/LLRIX-ofc/Banner-Gen/raw/refs/heads/main/Aiden.woff';
-
-    // Load font
-    const fontFace = new FontFace('Aiden', `url(${fontUrl})`);
-    fontFace.load().then((loadedFont) => {
-      document.fonts.add(loadedFont);
-    });
 
     const background = new Image();
     background.src = bgImageSrc;
 
     input.addEventListener('input', updateCanvas);
-    downloadButton.addEventListener('click', downloadImage);
     closePopup.addEventListener('click', () => popup.classList.remove('active'));
+
+    doneButton.addEventListener('click', () => {
+      // Intentionally does nothing
+    });
 
     function updateCanvas() {
       const text = input.value;
@@ -154,13 +155,6 @@
 
     function calculateFontSize(length) {
       return Math.max(230 - length * 10, 130);
-    }
-
-    function downloadImage() {
-      const link = document.createElement('a');
-      link.download = 'Twitter_Banner.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
     }
 
     updateCanvas(); // Initial render

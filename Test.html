@@ -1,116 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Twitter Banner Generator</title>
-<style>
-body {
-    background-color: #121212;
-    color: #fff;
-    font-family: sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-}
-.container {
-    text-align: center;
-}
-#banner {
-    background-image: url('https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true');
-    width: 1500px;
-    height: 500px;
-    position: relative;
-    overflow: hidden;
-    border: 2px solid #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-#text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: black;
-    font-family: 'Aiden', sans-serif; /* Requires font loading */
-    text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.7);
-    text-align: center;
-}
-input[type="text"] {
-    width: 300px;
-    padding: 10px;
-    margin: 20px 0;
-    font-size: 16px;
-    border: none;
-    border-radius: 4px;
-    background-color: #222;
-    color: #fff;
-}
-button {
-    padding: 10px 20px;
-    font-size: 18px;
-    background-color: #1DA1F2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-button:hover {
-    background-color: #0d8ecf;
-}
-.popup {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #333;
-    color: white;
-    padding: 20px;
-    border-radius: 5px;
-    z-index: 100;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>999</title>
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/LLRIX-ofc/Banner-Gen/refs/heads/main/999.png">
+  <style>
+    @font-face {
+      font-family: 'Aiden';
+      src: url('https://github.com/LLRIX-ofc/Banners/raw/refs/heads/main/Aiden.ttf') format('truetype');
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+    }
+
+    canvas {
+      border: 2px solid #333;
+      margin: 20px 0;
+    }
+
+    .input-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #333;
+      border-radius: 5px;
+      outline: none;
+      width: 300px;
+      text-align: center;
+      background-color: #1e1e1e;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    input[type="text"]::placeholder {
+      color: #666;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #333;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #555;
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      display: none;
+    }
+
+    .popup.active {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-    <div id="banner">
-        <div id="text">Your Text Here</div>
+  <div class="container">
+    <h1 style="font-family: Aiden;">999 BANNERS</h1>
+    <canvas id="previewCanvas" width="1500" height="500"></canvas>
+    <div class="input-wrapper">
+      <input type="text" id="bannerText" maxlength="11" placeholder="Enter your text (11 max)">
+      <button id="uploadButton">Done</button>
+      <div id="popup" class="popup">Character Limit Reached! (11 characters max)</div>
     </div>
-    <input type="text" id="inputText" maxlength="11" placeholder="Enter text (max 11 characters)">
-    <button id="downloadBtn">Done</button>
-    <div class="popup" id="popup">Character limit is 11!</div>
-</div>
-
-<script>
-    const inputText = document.getElementById('inputText');
-    const text = document.getElementById('text');
-    const downloadBtn = document.getElementById('downloadBtn');
+  </div>
+  <script>
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+    const input = document.getElementById('bannerText');
+    const uploadButton = document.getElementById('uploadButton');
     const popup = document.getElementById('popup');
 
-    inputText.addEventListener('input', () => {
-        let value = inputText.value;
-        if (value.length > 11) {
-            popup.style.display = 'block';
-            setTimeout(() => popup.style.display = 'none', 2000);
-            inputText.value = value.slice(0, 11);
-            value = inputText.value; // Update value after truncation
-        }
-        const fontSize = Math.max(230 - (value.length -1) * 10, 10);
-        text.style.fontSize = fontSize + 'px';
-        text.textContent = value;
+    const bgImageSrc = 'https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true';
+    const API_KEY = 'YOUR_IMGUR_API_KEY'; // Replace with your actual Imgur API key
+
+    const background = new Image();
+    background.src = bgImageSrc;
+
+
+    input.addEventListener('input', () => {
+      input.value = input.value.toUpperCase();
+      updateCanvas();
     });
 
-    downloadBtn.addEventListener('click', () => {
-        html2canvas(document.getElementById('banner')).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'twitter_banner.png';
-            link.href = canvas.toDataURL();
-            link.click();
+    uploadButton.addEventListener('click', () => {
+      const text = input.value;
+      if (text.length > 11) {
+        popup.classList.add('active');
+        setTimeout(() => popup.classList.remove('active'), 2000); // Hide popup after 2 seconds
+        return;
+      }
+
+      const imageData = canvas.toDataURL('image/png').split(',')[1];
+      const formData = new FormData();
+      formData.append('image', imageData);
+
+      fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, { // Use ImgBB API
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const imageUrl = data.data.url;
+            window.open(imageUrl, '_blank');
+          } else {
+            console.error('Failed to upload:', data.error);
+            alert('Image upload failed. Please try again later.');
+          }
+        })
+        .catch(error => {
+          console.error('Upload error:', error);
+          alert('An error occurred during upload. Please try again later.');
         });
     });
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    function updateCanvas() {
+      const text = input.value;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (text.length > 11) {
+        popup.classList.add('active');
+        return;
+      }
+
+      drawCanvas(text);
+    }
+
+    function drawCanvas(text) {
+      ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+      ctx.font = calculateFontSize(text.length) + 'px Aiden';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#000';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+      ctx.shadowBlur = 8;
+
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    }
+
+    function calculateFontSize(length) {
+      return Math.max(230 - length * 10, 130);
+    }
+
+    background.onload = () => {
+      updateCanvas();
+    };
+  </script>
 </body>
 </html>

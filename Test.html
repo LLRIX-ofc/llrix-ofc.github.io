@@ -1,107 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitter Banner Generator</title>
-    <style>
-        body {
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #1a1a1a;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-        #banner-container {
-            position: relative;
-            width: 1500px;
-            height: 500px;
-            background: url('https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true') no-repeat center center;
-            background-size: cover;
-            margin-bottom: 20px;
-        }
-        #banner-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: 'Aiden', sans-serif;
-            color: black;
-            text-shadow: 3px 3px 5px rgba(0,0,0,0.3);
-        }
-        input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 20px;
-            margin-top: 10px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: #444;
-            color: white;
-            cursor: pointer;
-        }
-        #popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
-            color: white;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Twitter Banner Generator</title>
+<style>
+body {
+    background-color: #121212;
+    color: #fff;
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+.container {
+    text-align: center;
+}
+#banner {
+    background-image: url('https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true');
+    width: 1500px;
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+#text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: black;
+    font-family: 'Aiden', sans-serif; /* Requires font loading */
+    text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.7);
+    text-align: center;
+}
+input[type="text"] {
+    width: 300px;
+    padding: 10px;
+    margin: 20px 0;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #222;
+    color: #fff;
+}
+button {
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #1DA1F2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #0d8ecf;
+}
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    border-radius: 5px;
+    z-index: 100;
+}
+</style>
 </head>
 <body>
-    <div id="banner-container">
-        <div id="banner-text"></div>
+<div class="container">
+    <div id="banner">
+        <div id="text">Your Text Here</div>
     </div>
-    <input type="text" id="input-text" maxlength="11" placeholder="Enter text (max 11 chars)">
-    <button onclick="downloadImage()">Done</button>
-    <div id="popup">Character limit is 11.</div>
+    <input type="text" id="inputText" maxlength="11" placeholder="Enter text (max 11 characters)">
+    <button id="downloadBtn">Done</button>
+    <div class="popup" id="popup">Character limit is 11!</div>
+</div>
 
-    <script>
-        const inputText = document.getElementById('input-text');
-        const bannerText = document.getElementById('banner-text');
-        const popup = document.getElementById('popup');
+<script>
+    const inputText = document.getElementById('inputText');
+    const text = document.getElementById('text');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const popup = document.getElementById('popup');
 
-        inputText.oninput = function() {
-            let text = inputText.value;
-            if (text.length > 11) {
-                showPopup();
-                return;
-            }
-            let textSize = Math.max(230 - (text.length - 1) * 10, 120);
-            bannerText.style.fontSize = textSize + 'px';
-            bannerText.textContent = text;
-        };
-
-        function showPopup() {
+    inputText.addEventListener('input', () => {
+        let value = inputText.value;
+        if (value.length > 11) {
             popup.style.display = 'block';
             setTimeout(() => popup.style.display = 'none', 2000);
+            inputText.value = value.slice(0, 11);
+            value = inputText.value; // Update value after truncation
         }
+        const fontSize = Math.max(230 - (value.length -1) * 10, 10);
+        text.style.fontSize = fontSize + 'px';
+        text.textContent = value;
+    });
 
-        function downloadImage() {
-            html2canvas(document.getElementById('banner-container')).then(canvas => {
-                let link = document.createElement('a');
-                link.download = 'twitter-banner.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        }
-    </script>
-
-    <!-- Include html2canvas library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    downloadBtn.addEventListener('click', () => {
+        html2canvas(document.getElementById('banner')).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'twitter_banner.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>

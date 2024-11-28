@@ -79,6 +79,12 @@
       background-size: cover;
       border-radius: 10px;
     }
+
+    /* Embed custom font */
+    @font-face {
+      font-family: 'Aiden';
+      src: url('https://github.com/LLRIX-ofc/Banner-Gen/raw/refs/heads/main/Aiden.woff') format('woff');
+    }
   </style>
 </head>
 <body>
@@ -94,15 +100,6 @@
     </div>
   </div>
   <script>
-    // Font URL
-    const fontUrl = "https://github.com/LLRIX-ofc/Banner-Gen/raw/refs/heads/main/Aiden.woff";
-
-    // Load custom font
-    const customFont = new FontFace("Aiden", `url(${fontUrl})`);
-    customFont.load().then((font) => {
-      document.fonts.add(font);
-    });
-
     // Canvas setup
     const canvas = document.getElementById("bannerCanvas");
     const ctx = canvas.getContext("2d");

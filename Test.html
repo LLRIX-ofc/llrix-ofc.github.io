@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Banner Generator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            font-family: 'Aiden', sans-serif;
+        }
+        #banner {
+            position: relative;
+            width: 1500px;
+            height: 500px;
+            background-image: url('https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true');
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        #text {
+            position: absolute;
+            color: black;
+            text-align: center;
+            text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.7);
+        }
+        #input {
+            position: absolute;
+            bottom: 20px;
+            width: 300px;
+            padding: 10px;
+            font-size: 20px;
+        }
+        #done {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+    <link href="https://github.com/LLRIX-ofc/Banners/raw/refs/heads/main/Aiden.ttf" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div id="banner">
+        <div id="text">Your Text Here</div>
+        <input type="text" id="input" maxlength="11" placeholder="Type your text here...">
+    </div>
+    <button id="done">Done</button>
+
+    <script>
+        const input = document.getElementById('input');
+        const text = document.getElementById('text');
+        const doneButton = document.getElementById('done');
+        const banner = document.getElementById('banner');
+
+        input.addEventListener('input', () => {
+            if (input.value.length > 11) {
+                alert('Character limit is 11');
+                input.value = input.value.slice(0, 11);
+            }
+            const size = Math.max(10, 230 - (input.value.length - 1) * 10);
+            text.style.fontSize = size + 'px';
+            text.textContent = input.value;
+        });
+
+        doneButton.addEventListener('click', () => {
+            html2canvas(banner).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'banner.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+</body>
+</html>

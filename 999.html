@@ -106,46 +106,14 @@
 <script>
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
-    const input = document.getElementById('bannerText');
-    const uploadButton = document.getElementById('uploadButton');
-    const popup = document.getElementById('popup');
-    const closePopup = document.getElementById('closePopup');
+    const input = document.getElementById('bannerText'):
 
     const bgImageSrc = 'https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true';
-    const API_KEY = '4cea733747ec5f61bc0875f64f73e814';
-    const background = new Image();
     background.src = bgImageSrc;
 
     input.addEventListener('input', () => {
       input.value = input.value.toUpperCase();
       updateCanvas();
-    });
-
-    closePopup.addEventListener('click', () => popup.classList.remove('active'));
-
-    uploadButton.addEventListener('click', () => {
-      const imageData = canvas.toDataURL('image/png').split(',')[1]; // Extract base64 content
-      const formData = new FormData();
-      formData.append('image', imageData);
-
-      // Call the ImgBB API
-      fetch(`https://api.imgbb.com/1/upload?expiration=600&key=${API_KEY}`, {
-        method: 'POST',
-        body: formData,
-      })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            const imageUrl = data.data.url;
-            window.open(imageUrl, '_blank'); // Open image URL in a new tab
-          } else {
-            alert('Failed to upload image. Please try again.');
-          }
-        })
-        .catch(error => {
-          console.error('Error uploading image:', error);
-          alert('An error occurred. Please try again.');
-        });
     });
 
     function updateCanvas() {

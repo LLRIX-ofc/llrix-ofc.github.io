@@ -76,6 +76,32 @@
     button:hover {
       background-color: #555;
     }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 20px 30px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
   </style>
 </head>
 <body>
@@ -83,16 +109,18 @@
     <h1 style="font-family: Aiden;">999 BANNERS</h1>
     <canvas id="canvas" width="1500" height="500"></canvas>
     <div class="input-wrapper">
-      <input type="text" id="bannerText" maxlength="11" placeholder="Enter your text (11 max)">
+      <input type="text" id="bannerText" placeholder="Enter your text (11 max)">
       <button id="downloadButton">Download</button>
     </div>
   </div>
+  <div id="popup" class="popup">⚠️ Text limit is 11 characters!</div>
 
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const inputText = document.getElementById('bannerText');
     const downloadButton = document.getElementById('downloadButton');
+    const popup = document.getElementById('popup');
 
     const BACKGROUND_URL = 'https://i.imgur.com/yiqSkqL.png';
 
@@ -104,18 +132,26 @@
       drawCanvas();
     };
 
-    inputText.addEventListener('input', drawCanvas);
+    inputText.addEventListener('input', () => {
+      if (inputText.value.length > 11) {
+        inputText.value = inputText.value.slice(0, 11);
+        showPopup();
+      }
+      drawCanvas();
+    });
+
     downloadButton.addEventListener('click', downloadImage);
 
     function drawCanvas() {
       const text = inputText.value.toUpperCase();
       const fontSize = Math.max(230 - (text.length - 1) * 10, 10);
 
+      // Draw the background
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
       ctx.font = `${fontSize}px Aiden, sans-serif`;
-      ctx.fillStyle = '#000'; // Black text
+      ctx.fillStyle = '#000';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(text, canvas.width / 2, canvas.height / 2);
@@ -126,6 +162,13 @@
       link.download = 'banner.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
+    }
+
+    function showPopup() {
+      popup.style.display = 'block';
+      setTimeout(() => {
+        popup.style.display = 'none';
+      }, 2000);
     }
   </script>
 </body>

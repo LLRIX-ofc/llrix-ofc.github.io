@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>999</title>
+  <title>999 Banners</title>
   <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/LLRIX-ofc/Banner-Gen/refs/heads/main/999.png">
   <style>
     @font-face {
       font-family: 'Aiden';
-      src: url('Aiden.ttf') format('truetype');
+      src: url('./Aiden.ttf') format('truetype');
     }
 
     body {
@@ -32,9 +32,10 @@
       width: 100%;
     }
 
-    canvas {
-      border: 2px solid #333;
-      margin: 20px 0;
+    #canvas {
+      border: 2px solid #fff;
+      display: block;
+      margin-bottom: 20px;
     }
 
     .input-wrapper {
@@ -75,81 +76,57 @@
     button:hover {
       background-color: #555;
     }
-
-    .popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #333;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      display: none;
-    }
-
-    .popup.active {
-      display: block;
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1 style="font-family: Aiden;">999 BANNERS</h1>
-    <canvas id="previewCanvas" width="1500" height="500"></canvas>
+    <canvas id="canvas" width="1500" height="500"></canvas>
     <div class="input-wrapper">
       <input type="text" id="bannerText" maxlength="11" placeholder="Enter your text (11 max)">
-      <button id="uploadButton">Done</button>
+      <button id="downloadButton">Download</button>
     </div>
   </div>
-<script>
-    const canvas = document.getElementById('previewCanvas');
+
+  <script>
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const input = document.getElementById('bannerText'):
+    const inputText = document.getElementById('bannerText');
+    const downloadButton = document.getElementById('downloadButton');
 
-    const bgImageSrc = 'https://github.com/LLRIX-ofc/Banner-Gen/blob/main/Background.png?raw=true';
-    background.src = bgImageSrc;
+    const BACKGROUND_URL = 'https://i.imgur.com/yiqSkqL.png';
 
-    input.addEventListener('input', () => {
-      input.value = input.value.toUpperCase();
-      updateCanvas();
-    });
+    const backgroundImage = new Image();
+    backgroundImage.crossOrigin = 'anonymous';
+    backgroundImage.src = BACKGROUND_URL;
 
-    function updateCanvas() {
-      const text = input.value;
+    backgroundImage.onload = () => {
+      drawCanvas();
+    };
+
+    inputText.addEventListener('input', drawCanvas);
+    downloadButton.addEventListener('click', downloadImage);
+
+    function drawCanvas() {
+      const text = inputText.value.toUpperCase();
+      const fontSize = Math.max(230 - (text.length - 1) * 10, 10);
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
-      if (text.length > 11) {
-        popup.classList.add('active');
-        return;
-      }
-
-      drawCanvas(text);
-    }
-
-    function drawCanvas(text) {
-      ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-      ctx.font = calculateFontSize(text.length) + 'px Aiden';
+      ctx.font = `${fontSize}px Aiden, sans-serif`;
+      ctx.fillStyle = '#000'; // Black text
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#000';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowOffsetX = 3;
-      ctx.shadowOffsetY = 3;
-      ctx.shadowBlur = 8;
-
       ctx.fillText(text, canvas.width / 2, canvas.height / 2);
     }
 
-    function calculateFontSize(length) {
-      return Math.max(230 - length * 10, 130);
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'banner.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     }
-
-    background.onload = () => {
-      updateCanvas(); // Render canvas once the background has loaded
-    };
   </script>
 </body>
 </html>

@@ -143,24 +143,19 @@
     <h1 style="font-family: Aiden;">999 BANNERS</h1>
     <canvas id="canvas" width="1500" height="500"></canvas>
     <div class="input-wrapper">
-      <input type="text" id="bannerText" placeholder="Enter your text (11 max)">
+      <input type="text" id="bannerText" placeholder="Enter your text (12 max)">
       <button id="downloadButton">Download</button>
     </div>
   </div>
  <a class="credit" style="text-decoration: none;color: #fff;" href="https://guns.lol/llrix" target="_blank"><div class="credit">Made by LLRIX </div></a>
-  <div id="popup" class="popup">⚠️ Text limit is 11 characters!</div>
+  <div id="popup" class="popup">⚠️ Text limit is 12 characters!</div>
 
   <div id="overlay" class="overlay">
     <div class="overlay-text">Click anywhere to start...</div>
   </div>
-
-  <audio id="backgroundAudio"  src="https://github.com/LLRIX-ofc/Banners/raw/refs/heads/main/KelpLinen_Loop.wav" loop ></audio>
-
-  <div><img src=""></div>
-
+  
   <script>
     const overlay = document.getElementById('overlay');
-    const backgroundAudio = document.getElementById('backgroundAudio');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const inputText = document.getElementById('bannerText');
@@ -178,8 +173,8 @@
     };
 
     inputText.addEventListener('input', () => {
-      if (inputText.value.length > 11) {
-        inputText.value = inputText.value.slice(0, 11);
+      if (inputText.value.length > 12) {
+        inputText.value = inputText.value.slice(0, 12);
         showPopup();
       }
       drawCanvas();
@@ -189,7 +184,7 @@
 
     function drawCanvas() {
       const text = inputText.value.toUpperCase();
-      const fontSize = Math.max(230 - (text.length - 1) * 10, 10);
+      const fontSize = Math.max(200 - (text.length - 1) * 10, 10);
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Banners</title>
+  <link rel="icon" type="image/x-icon" href="/Anime/Hunters.png">
+  <style>
+    @font-face {
+      font-family: 'TLS';
+      src: url('./TLS.ttf') format('truetype');
+    }
+
+    @font-face {
+      font-family: 'Akira';
+      src: url('./Akira.otf') format('opentype');
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+    }
+
+    #canvas {
+      border: 2px solid #fff;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    .input-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #333;
+      border-radius: 5px;
+      outline: none;
+      width: 300px;
+      text-align: center;
+      background-color: #1e1e1e;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    input[type="text"]::placeholder {
+      color: #666;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #333;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #555;
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 20px 30px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .credit {
+      position: fixed;
+      top: 90%;
+      left: 83%;
+      background-color:#333;
+      color: #fff;
+      padding: 20px 25px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      font-family: Akira;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+
+    .overlay-text {
+      font-size: 36px;
+      color: white;
+      text-align: center;
+    }
+
+      .downloadButton {
+  appearance: none;
+  background-color: #000000;
+  border: 2px solid #1A1A1A;
+  border-radius: 15px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Roobert,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+  font-size: 16px;
+  font-weight: 600;
+  line-height: normal;
+  margin: 0;
+  min-height: 60px;
+  min-width: 0;
+  outline: none;
+  padding: 16px 24px;
+  text-align: center;
+  text-decoration: none;
+  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  width: 100%;
+  will-change: transform;
+  
+}
+
+.downloadButton:disabled {
+  pointer-events: none;
+}
+
+.downloadButton:hover {
+  box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
+  transform: translateY(-2px);
+}
+
+.downloadButton:active {
+  box-shadow: none;
+  transform: translateY(0);
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 style="font-family: TLS;">Anime Banners</h1>
+    <canvas id="canvas" width="1500" height="500"></canvas>
+    <div class="input-wrapper">
+      <input type="text" id="bannerText" placeholder="Enter your text (12 max)">
+      <button id="downloadButton" class="downloadButton" >Download</button>
+    </div>
+  </div>
+ <a class="credit" style="text-decoration: none;color: #fff;" href="https://guns.lol/llrix" target="_blank"><div class="credit">Made by LLRIX </div></a>
+  <div id="popup" class="popup">⚠️ Text limit is 12 characters!</div>
+
+  <div id="overlay" class="overlay">
+    <div class="overlay-text">Click anywhere to start...</div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById('overlay');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const inputText = document.getElementById('bannerText');
+    const downloadButton = document.getElementById('downloadButton');
+    const popup = document.getElementById('popup');
+
+    const BACKGROUND_URL = 'https://llrix-ofc.github.io/banners/Anime/Background.png';
+
+    const backgroundImage = new Image();
+    backgroundImage.crossOrigin = 'anonymous';
+    backgroundImage.src = BACKGROUND_URL;
+
+    backgroundImage.onload = () => {
+      drawCanvas();
+    };
+
+    inputText.addEventListener('input', () => {
+      if (inputText.value.length > 12) {
+        inputText.value = inputText.value.slice(0, 12);
+        showPopup();
+      }
+      drawCanvas();
+    });
+
+    downloadButton.addEventListener('click', downloadImage);
+
+    function drawCanvas() {
+  const text = inputText.value.toUpperCase();
+  const fontSize = Math.max(200 - (text.length - 1) * 10, 10);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+  ctx.font = `${fontSize}px TLS, sans-serif`;
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+}
+
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'banner.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    function showPopup() {
+      popup.style.display = 'block';
+      setTimeout(() => {
+        popup.style.display = 'none';
+      }, 2000);
+    }
+    document.body.addEventListener('click', () => {
+      overlay.style.display = 'none';
+    })
+  </script>
+</body>
+</html>

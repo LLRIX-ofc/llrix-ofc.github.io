@@ -14,7 +14,7 @@ Hi, my name is LLRIX and im from 🇧🇭 Bahrain
 
 - Modding Fortnite: Datamining, adding custom skins, modding in dumb stuff that I thought of cus why not
 
-- Messing around with UE5, its so mind blowing what you can do with it
+- Messing around with UE5, its just insane what you can do with it
 ## My Top 5 Artists
 
 - 1-Cactus Jack

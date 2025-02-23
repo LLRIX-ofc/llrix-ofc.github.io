@@ -8,12 +8,17 @@
   <style>
     @font-face {
       font-family: 'Lawless';
-      src: url('./Lawless.otf') format('opentype');
+      src: url('./Eroded.ttf') format('truetype');
     }
 
     @font-face {
       font-family: 'Akira';
       src: url('./Akira.otf') format('opentype');
+    }
+
+      @font-face {
+      font-family: 'Identify';
+      src: url('./Identify.ttf') format('truetype');
     }
 
     body {
@@ -210,8 +215,10 @@
     const inputText = document.getElementById('bannerText');
     const downloadButton = document.getElementById('downloadButton');
     const popup = document.getElementById('popup');
-
-    const BACKGROUND_URL = 'https://i.imgur.com/fI1ast9.png';
+    
+    const BACKGROUND_URL = 'https://i.imgur.com/fI1ast9.png'; 
+    const enableRandomFont = true;
+    const randomFonts = 'Identify';
 
     const backgroundImage = new Image();
     backgroundImage.crossOrigin = 'anonymous';
@@ -243,8 +250,23 @@
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-}
 
+          if (text.length >= 5 && enableRandomFont) {
+        text = applyRandomFont(text);
+    }
+}
+   function applyRandomFont(text) {
+    const chars = text.split('');
+    const randomIndex = Math.floor(Math.random() * (chars.length - 2)) + 1;
+    const randomFont = randomFonts[Math.floor(Math.random() * randomFonts.length)];
+    
+    return chars.map((char, index) => {
+        if (index === randomIndex) {
+            return `%c${char}`;
+        }
+        return char;
+    }).join('');
+   }
 
     function downloadImage() {
       const link = document.createElement('a');

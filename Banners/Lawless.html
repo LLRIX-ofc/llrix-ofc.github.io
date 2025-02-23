@@ -6,10 +6,6 @@
   <title>Lawless Banners</title>
   <link rel="icon" type="image/x-icon" href="https://github.com/LLRIX-ofc/llrix-ofc.github.io/blob/main/Banners/Lawless/Icon.png?raw=true">
   <style>
-    @font-face {
-      font-family: 'Lawless';
-      src: url('./Confidential.otf') format('opentype');
-    }
 
     @font-face {
       font-family: 'Akira';
@@ -189,7 +185,7 @@
 </head>
 <body>
   <div class="container">
-    <h1 style="font-family: Lawless;">Lawless Banners</h1>
+    <h1 style="font-family: Akira;">Lawless Banners</h1>
     <canvas id="canvas" width="1500" height="500"></canvas>
     <div class="input-wrapper">
       <input type="text" id="bannerText" style="font-family:Akira" placeholder="Enter your text (12 max)">
@@ -238,7 +234,7 @@
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
-  ctx.font = `${fontSize}px Lawless, sans-serif`;
+  ctx.font = `${fontSize}px Akira, sans-serif`;
   ctx.fillStyle = '#000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';

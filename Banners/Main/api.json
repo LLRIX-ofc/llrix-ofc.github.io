@@ -3,13 +3,21 @@
       "Name": "999",
       "Url": "https://llrix-ofc.github.io/Banners/999",
       "Priority": "1",
-      "Example_Url": "https://imgur.com/2L1vKLx"
+    },
+    {
+      "Name": "999 (2)",
+      "Url": "https://llrix-ofc.github.io/Banners/999_2",
+      "Priority": "2",
     },
     {
       "Name": "Anime",
       "Url": "https://llrix-ofc.github.io/Banners/Anime",
-      "Priority": "2",
-      "Example_Url": "https://imgur.com/HZjlJD5"
+      "Priority": "3",
+    },
+    {
+      "Name": "Lawless",
+      "Url": "https://llrix-ofc.github.io/Banners/Lawless",
+      "Priority": "4",
     }
   ]
   

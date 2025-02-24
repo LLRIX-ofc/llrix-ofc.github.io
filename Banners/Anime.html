@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anime Banners</title>
-  <link rel="icon" type="image/x-icon" href="/Banners/Anime/Icon.png">
+  <link rel="icon" type="image/x-icon" href="./Anime/Icon.png">
   <style>
     @font-face {
       font-family: 'TLS';
-      src: url('./TLS.ttf') format('truetype');
+      src: url('./Anime/TLS.ttf') format('truetype');
     }
 
     @font-face {
       font-family: 'Akira';
-      src: url('./Akira.otf') format('opentype');
+      src: url('./Main/Akira.otf') format('opentype');
     }
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Akira;
       background-color: #121212;
       color: #fff;
       display: flex;
@@ -154,7 +154,7 @@
       color: #FFFFFF;
       cursor: pointer;
       display: inline-block;
-      font-family: Roobert,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      font-family: Akira;
       font-size: 16px;
       font-weight: 600;
       line-height: normal;
@@ -212,7 +212,7 @@
     const downloadButton = document.getElementById('downloadButton');
     const popup = document.getElementById('popup');
 
-    const BACKGROUND_URL = '/Banners/Anime/Background.png';
+    const BACKGROUND_URL = './Anime/Background.png';
 
     const backgroundImage = new Image();
     backgroundImage.crossOrigin = 'anonymous';

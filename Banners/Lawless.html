@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lawless Banners</title>
-  <link rel="icon" type="image/x-icon" href="/Banners/Lawless/Icon.png">
+  <link rel="icon" type="image/x-icon" href="./Lawless/Icon.png">
   <style>
 
     @font-face {
       font-family: 'Akira';
-      src: url('./Akira.otf') format('opentype');
+      src: url('./Main/Akira.otf') format('opentype');
     }
 
     body {
@@ -143,32 +143,31 @@
     }
 
   .downloadButton {
-  appearance: none;
-  background-color: #000000;
-  border: 2px solid #1A1A1A;
-  border-radius: 15px;
-  box-sizing: border-box;
-  color: #FFFFFF;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Akira;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: normal;
-  margin: 0;
-  min-height: 60px;
-  min-width: 0;
-  outline: none;
-  padding: 16px 24px;
-  text-align: center;
-  text-decoration: none;
-  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  width: 100%;
-  will-change: transform;
-  
+      appearance: none;
+      background-color: #000000;
+      border: 2px solid #1A1A1A;
+      border-radius: 15px;
+      box-sizing: border-box;
+      color: #FFFFFF;
+      cursor: pointer;
+      display: inline-block;
+      font-family: Akira;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: normal;
+      margin: 0;
+      min-height: 60px;
+      min-width: 0;
+      outline: none;
+      padding: 16px 24px;
+      text-align: center;
+      text-decoration: none;
+      transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      width: 100%;
+      will-change: transform;
 }
 
 .downloadButton:disabled {
@@ -210,7 +209,7 @@
     const downloadButton = document.getElementById('downloadButton');
     const popup = document.getElementById('popup');
     
-    const BACKGROUND_URL = '/Banners/Lawless/Background.png'; 
+    const BACKGROUND_URL = './Lawless/Background.png'; 
 
     const backgroundImage = new Image();
     backgroundImage.crossOrigin = 'anonymous';

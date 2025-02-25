@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banners</title>
+  <link rel="icon" type="image/x-icon" href="/Main/Icon.png">
+  <style>
+    @font-face {
+      font-family: 'Akira';
+      src: url('./Main/Akira.otf') format('opentype');
+    }
+
+    body {
+      background-color: #121212;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .credit {
+      position: fixed;
+      top: 90%;
+      left: 83%;
+      background-color:#333;
+      color: #fff;
+      padding: 20px 25px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      font-family: Akira;
+      text-decoration: none;
+    }
+
+    .banner {
+      width: 360px;
+      height: 150px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      font-family: Akira;
+      display: flex;
+      align-items: flex-end;
+      justify-content: left;
+      color: white;
+    }
+
+    .banner::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 40%;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    }
+
+    .banner div {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      z-index: 2;
+      font-size: 18px;
+    }
+
+    .banner img {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <a class="credit" href="https://guns.lol/llrix" target="_blank">Made by LLRIX</a>
+
+  <script>
+    async function loadBanners() {
+      try {
+        const response = await fetch('./Banners/Main/api.json');
+        const data = await response.json();
+        
+        let banners = [];
+        
+        data.flat().forEach(item => {
+          if (item.Collection_Name) {
+            // Collection handling
+            let highestPriorityBanner = item.Banners.reduce((prev, curr) => prev.Priority > curr.Priority ? prev : curr);
+            banners.push({
+              Banner_Name: item.Collection_Name,
+              Url: highestPriorityBanner.Url,
+              Priority: highestPriorityBanner.Priority,
+              IsCollection: true,
+              Background: highestPriorityBanner.Url + '/background.png'
+            });
+          } else {
+            // Individual banners
+            banners.push({
+              Banner_Name: item.Banner_Name,
+              Url: item.Url,
+              Priority: item.Priority,
+              IsCollection: false,
+              Background: item.Url + '/Background.png'
+            });
+          }
+        });
+
+        // Sort banners by priority (highest first)
+        banners.sort((a, b) => b.Priority - a.Priority);
+
+        // Create banner elements
+        const container = document.body;
+        banners.forEach((banner, index) => {
+          const bannerElement = document.createElement('a');
+          bannerElement.className = 'banner';
+          bannerElement.href = banner.Url;
+          bannerElement.target = '_blank';
+          bannerElement.innerHTML = `
+            <img src="${banner.Background}" alt="${banner.Banner_Name}">
+            <div>${banner.Banner_Name}</div>
+          `;
+          container.appendChild(bannerElement);
+        });
+      } catch (error) {
+        console.error('Error loading banners:', error);
+      }
+    }
+
+    window.onload = loadBanners;
+  </script>
+</body>
+</html>

@@ -1,23 +1,28 @@
 [
-    {
-      "Name": "999",
+  [
+    {"Collection_Name": "Juice Wrld (collection)",
+    "Priority":"1",
+    "Banners":[{
+      "Banner_Name": "999",
       "Url": "https://llrix-ofc.github.io/Banners/999",
-      "Priority": "1",
-    },
-    {
-      "Name": "999 (2)",
+      "Priority": "1"
+      },
+      {
+      "Banner_Name": "999 (2)",
       "Url": "https://llrix-ofc.github.io/Banners/999_2",
-      "Priority": "2",
-    },
-    {
-      "Name": "Anime",
-      "Url": "https://llrix-ofc.github.io/Banners/Anime",
-      "Priority": "3",
-    },
-    {
-      "Name": "Lawless",
-      "Url": "https://llrix-ofc.github.io/Banners/Lawless",
-      "Priority": "4",
-    }
-  ]
-  
+      "Priority": "2"
+      }]
+     }
+    ],
+{
+"Banner_Name": "Anime",
+"Url": "https://llrix-ofc.github.io/Banners/Anime",
+"Priority": "3"
+},
+{
+"Banner_Name": "Lawless",
+"Url": "https://llrix-ofc.github.io/Banners/Lawless",
+"Priority": "4"
+}
+]
+

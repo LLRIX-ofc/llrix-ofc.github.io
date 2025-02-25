@@ -8,23 +8,21 @@
   <style>
     @font-face {
       font-family: 'Akira';
-      src: url('./Banners/Akira.otf') format('opentype');
+      src: url('./Akira.otf') format('opentype');
     }
 
     body {
       background-color: #121212;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
+      font-family: 'Akira', sans-serif;
     }
 
     .credit {
       position: fixed;
       top: 90%;
       left: 83%;
-      background-color:#333;
+      background-color: #333;
       color: #fff;
       padding: 20px 25px;
       border-radius: 10px;
@@ -36,105 +34,269 @@
       text-decoration: none;
     }
 
-    .banner {
-      width: 360px;
-      height: 150px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-      position: relative;
-      overflow: hidden;
-      text-decoration: none;
-      font-family: Akira;
+    .banners-container {
       display: flex;
-      align-items: flex-end;
-      justify-content: left;
-      color: white;
+      flex-wrap: wrap;
+      padding: 140px 25px;
+      gap: 50px;
     }
 
-    .banner::after {
-      content: "";
+    .container-card {
+      position: relative;
+      width: 720px;
+      height: 300px;
+      background-color: #333;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      text-decoration: none;
+      display: block;
+    }
+
+    .container-card .background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    .container-card .text-overlay {
       position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 40%;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-    }
-
-    .banner div {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      z-index: 2;
+      padding: 20px;
+      color: #fff;
       font-size: 18px;
+      text-align: left;
+      z-index: 3;
     }
 
-    .banner img {
+    .container-card .gradient-overlay {
       position: absolute;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      top: 0;
+      bottom: 0;
       left: 0;
+      width: 100%;
+      height: 100px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+      z-index: 2;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 30px;
+      left: 30px;
+      background-color: #333;
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      font-family: Akira;
+      text-decoration: none;
+      display: none;
+    }
+
+    .collection-title {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 15px 30px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      font-family: Akira;
+      display: none;
     }
   </style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3812499446551137" crossorigin="anonymous"></script>
 </head>
 <body>
-  <a class="credit" href="https://guns.lol/llrix" target="_blank">Made by LLRIX</a>
+  <a class="credit" href="https://guns.lol/llrix" target="_blank">
+    <div class="credit">Made by LLRIX</div>
+  </a>
+  <a href="#" id="backButton" class="back-button">Back to Main</a>
+  <div id="collectionTitle" class="collection-title"></div>
+  <div id="bannersContainer" class="banners-container"></div>
 
   <script>
-    async function loadBanners() {
-      try {
-        const response = await fetch('./Banners/Main/api.json');
-        const data = await response.json();
-        
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const collectionParam = urlParams.get('collection');
+      const bannersContainer = document.getElementById('bannersContainer');
+      const backButton = document.getElementById('backButton');
+      const collectionTitle = document.getElementById('collectionTitle');
+      
+      // Load the JSON data
+      fetch('./Banners/Main/api.json')
+        .then(response => response.json())
+        .then(data => {
+          if (collectionParam) {
+            // Display collection banners
+            showCollection(data, collectionParam);
+          } else {
+            // Display main banners
+            showMainBanners(data);
+          }
+        })
+        .catch(error => {
+          console.error('Error loading banner data:', error);
+          bannersContainer.innerHTML = '<p style="color: white; text-align: center; width: 100%;">Error loading banner data. Please try again later.</p>';
+        });
+      
+      function showMainBanners(data) {
+        // Process and sort the data
         let banners = [];
         
-        data.flat().forEach(item => {
-          if (item.Collection_Name) {
-            // Collection handling
-            let highestPriorityBanner = item.Banners.reduce((prev, curr) => prev.Priority > curr.Priority ? prev : curr);
-            banners.push({
-              Banner_Name: item.Collection_Name,
-              Url: highestPriorityBanner.Url,
-              Priority: highestPriorityBanner.Priority,
-              IsCollection: true,
-              Background: highestPriorityBanner.Url + '/background.png'
+        // Handle the complex nested structure
+        data.forEach(item => {
+          if (Array.isArray(item)) {
+            // This is a collection array
+            item.forEach(subItem => {
+              if (Array.isArray(subItem)) {
+                subItem.forEach(collection => {
+                  if (collection.Collection_Name) {
+                    // Find the banner with highest priority in this collection
+                    let highestPriorityBanner = collection.Banners.reduce((prev, current) => 
+                      (parseInt(prev.Priority) > parseInt(current.Priority)) ? prev : current
+                    );
+                    
+                    banners.push({
+                      name: collection.Collection_Name,
+                      url: `?collection=${encodeURIComponent(collection.Collection_Name)}`,
+                      priority: parseInt(collection.Priority),
+                      backgroundUrl: `${highestPriorityBanner.Url}/background.png`,
+                      isCollection: true
+                    });
+                  }
+                });
+              } else if (subItem.Banner_Name) {
+                // This is a regular banner
+                banners.push({
+                  name: subItem.Banner_Name,
+                  url: subItem.Url,
+                  priority: parseInt(subItem.Priority),
+                  backgroundUrl: `${subItem.Url}/background.png`,
+                  isCollection: false
+                });
+              }
             });
-          } else {
-            // Individual banners
+          } else if (item.Banner_Name) {
+            // This is a regular banner at the top level
             banners.push({
-              Banner_Name: item.Banner_Name,
-              Url: item.Url,
-              Priority: item.Priority,
-              IsCollection: false,
-              Background: item.Url + '/background.png'
+              name: item.Banner_Name,
+              url: item.Url,
+              priority: parseInt(item.Priority),
+              backgroundUrl: `${item.Url}/background.png`,
+              isCollection: false
             });
           }
         });
-
+        
         // Sort banners by priority (highest first)
-        banners.sort((a, b) => b.Priority - a.Priority);
-
+        banners.sort((a, b) => b.priority - a.priority);
+        
         // Create banner elements
-        const container = document.body;
-        banners.forEach((banner, index) => {
-          const bannerElement = document.createElement('a');
-          bannerElement.className = 'banner';
-          bannerElement.href = banner.Url;
-          bannerElement.target = '_blank';
-          bannerElement.innerHTML = `
-            <img src="${banner.Background}" alt="${banner.Banner_Name}">
-            <div>${banner.Banner_Name}</div>
-          `;
-          container.appendChild(bannerElement);
-        });
-      } catch (error) {
-        console.error('Error loading banners:', error);
+        createBannerElements(banners);
       }
-    }
-
-    window.onload = loadBanners;
+      
+      function showCollection(data, collectionName) {
+        // Show back button and collection title
+        backButton.style.display = 'block';
+        collectionTitle.style.display = 'block';
+        collectionTitle.textContent = collectionName;
+        
+        backButton.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.location.href = window.location.pathname;
+        });
+        
+        // Find the collection and its banners
+        let collectionBanners = [];
+        
+        // Search through the nested structure
+        data.forEach(item => {
+          if (Array.isArray(item)) {
+            item.forEach(subItem => {
+              if (Array.isArray(subItem)) {
+                subItem.forEach(collection => {
+                  if (collection.Collection_Name === collectionName && collection.Banners) {
+                    collection.Banners.forEach(banner => {
+                      collectionBanners.push({
+                        name: banner.Banner_Name,
+                        url: banner.Url,
+                        priority: parseInt(banner.Priority),
+                        backgroundUrl: `${banner.Url}/background.png`,
+                        isCollection: false
+                      });
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+        
+        // Sort banners by priority (highest first)
+        collectionBanners.sort((a, b) => b.priority - a.priority);
+        
+        // Create banner elements
+        createBannerElements(collectionBanners);
+      }
+      
+      function createBannerElements(banners) {
+        bannersContainer.innerHTML = '';
+        
+        banners.forEach((banner, index) => {
+          const cardLink = document.createElement('a');
+          cardLink.href = banner.url;
+          cardLink.target = "_blank";
+          cardLink.className = `container-card`;
+          
+          // For collections, prevent the default link behavior
+          if (banner.isCollection) {
+            cardLink.addEventListener('click', function(e) {
+              e.preventDefault();
+              window.location.href = banner.url;
+            });
+          }
+          
+          // Create background image
+          const backgroundImg = document.createElement('img');
+          backgroundImg.src = banner.backgroundUrl;
+          backgroundImg.className = 'background';
+          backgroundImg.alt = banner.name;
+          backgroundImg.onerror = function() {
+            this.src = './Main/default-background.png'; // Fallback image
+          };
+          
+          // Create gradient overlay
+          const gradientOverlay = document.createElement('div');
+          gradientOverlay.className = 'gradient-overlay';
+          
+          // Create text overlay
+          const textOverlay = document.createElement('div');
+          textOverlay.className = 'text-overlay';
+          textOverlay.textContent = banner.name;
+          
+          // Append elements
+          cardLink.appendChild(backgroundImg);
+          cardLink.appendChild(gradientOverlay);
+          cardLink.appendChild(textOverlay);
+          bannersContainer.appendChild(cardLink);
+        });
+      }
+    });
   </script>
 </body>
 </html>

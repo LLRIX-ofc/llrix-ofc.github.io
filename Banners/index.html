@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Banners</title>
-  <link rel="icon" type="image/x-icon" href="/Main/Icon.png">
+  <link rel="icon" type="image/x-icon" href="./Main/Icon.png">
   <style>
     @font-face {
       font-family: 'Akira';
@@ -85,7 +85,7 @@
   <script>
     async function loadBanners() {
       try {
-        const response = await fetch('./Banners/Main/api.json');
+        const response = await fetch('./Main/api.json');
         const data = await response.json();
         
         let banners = [];

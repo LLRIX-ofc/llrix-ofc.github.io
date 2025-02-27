@@ -14,96 +14,113 @@
     body {
       background-color: #121212;
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
       padding: 20px;
     }
 
+    .banner-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      width: 90vw;
+      max-width: 1200px;
+    }
+
+    .banner-container.row {
+      grid-template-columns: 1fr 1fr;
+    }
+
     .banner {
       position: relative;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-      font-family: Akira;
-      text-decoration: none;
       background-size: cover;
       background-position: center;
+      border-radius: 10px;
       overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+      text-decoration: none;
+      color: white;
+      font-family: Akira;
+      font-size: 24px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
 
-    .banner:first-child {
-      width: 90vw;
-      height: 50vh;
+    .banner.large {
+      height: 60vh;
+      width: 100%;
     }
 
-    .banner:not(:first-child) {
-      width: 360px;
-      height: 150px;
-      margin: 15px;
+    .banner.small {
+      height: 30vh;
     }
 
-    .banner::after {
-      content: "";
+    .banner-overlay {
       position: absolute;
       bottom: 0;
-      left: 0;
       width: 100%;
-      height: 40px;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-    }
-
-    .banner span {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      color: white;
-      font-size: 18px;
-      z-index: 2;
+      padding: 20px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
     }
   </style>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3812499446551137"
-  crossorigin="anonymous"></script>
 </head>
 <body>
-  <div id="banners-container"></div>
-
+  <div class="banner-container" id="bannerContainer"></div>
   <script>
-    fetch('./Main/api.json')
-      .then(response => response.json())
-      .then(data => {
-        let banners = [];
+    async function fetchBanners() {
+      try {
+        const response = await fetch('./Main/api.json');
+        const data = await response.json();
+        renderBanners(data);
+      } catch (error) {
+        console.error('Error loading banners:', error);
+      }
+    }
 
-        data.flat().forEach(item => {
-          if (item.Collection_Name) {
-            const highestPriorityBanner = item.Banners.reduce((prev, curr) => parseInt(curr.Priority) > parseInt(prev.Priority) ? curr : prev);
-            banners.push({
-              name: item.Collection_Name,
-              url: highestPriorityBanner.Url,
-              image: highestPriorityBanner.Url + '/Background.png',
-              priority: highestPriorityBanner.Priority
-            });
-          } else {
-            banners.push({
-              name: item.Banner_Name,
-              url: item.Url,
-              image: item.Url + '/Background.png',
-              priority: item.Priority
-            });
+    function renderBanners(data) {
+      const container = document.getElementById('bannerContainer');
+      container.innerHTML = '';
+
+      let firstBanner = true;
+      let rowContainer = null;
+      let bannerCount = 0;
+
+      data.flat().sort((a, b) => b.Priority - a.Priority).forEach(item => {
+        const isCollection = item.Collection_Name !== undefined;
+        const bannerUrl = isCollection ? item.Banners.sort((a, b) => b.Priority - a.Priority)[0].Url : item.Url;
+        const backgroundImage = `${bannerUrl}/Background.png`;
+        
+        const banner = document.createElement('a');
+        banner.href = bannerUrl;
+        banner.classList.add('banner');
+        banner.style.backgroundImage = `url('${backgroundImage}')`;
+        banner.target = "_self";
+
+        if (firstBanner) {
+          banner.classList.add('large');
+          firstBanner = false;
+          container.appendChild(banner);
+        } else {
+          if (bannerCount % 2 === 0) {
+            rowContainer = document.createElement('div');
+            rowContainer.classList.add('banner-container', 'row');
+            container.appendChild(rowContainer);
           }
-        });
+          banner.classList.add('small');
+          rowContainer.appendChild(banner);
+          bannerCount++;
+        }
 
-        banners.sort((a, b) => b.priority - a.priority);
-
-        const container = document.getElementById('banners-container');
-        banners.forEach((banner, index) => {
-          const bannerElement = document.createElement('a');
-          bannerElement.className = 'banner';
-          bannerElement.href = banner.url;
-          bannerElement.style.backgroundImage = `url('${banner.image}')`;
-          bannerElement.innerHTML = `<span>${banner.name}</span>`;
-
-          container.appendChild(bannerElement);
-        });
+        const overlay = document.createElement('div');
+        overlay.classList.add('banner-overlay');
+        overlay.textContent = isCollection ? item.Collection_Name : item.Banner_Name;
+        banner.appendChild(overlay);
       });
+    }
+
+    fetchBanners();
   </script>
 </body>
 </html>

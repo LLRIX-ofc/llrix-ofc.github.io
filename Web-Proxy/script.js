@@ -1,4 +1,4 @@
-const BACKEND_URL = "https://web-proxy-backend.nintendoreward2.repl.co"; // Change this
+const BACKEND_URL = "https://c95973d1-a909-449e-8c1c-4661734cd9e6-00-2jjuaky79g363.sisko.replit.dev/"; // Change this
 
 function loadWebsite() {
     let url = document.getElementById('urlInput').value;

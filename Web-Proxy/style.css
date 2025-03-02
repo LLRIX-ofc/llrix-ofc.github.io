@@ -1,0 +1,37 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f4f4f4;
+}
+
+#urlInput {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 300px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    position: absolute;
+    top: 10px;
+    left: 320px;
+    padding: 10px;
+    background-color: blue;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+iframe {
+    width: 90%;
+    height: 80%;
+    border: 1px solid #ccc;
+    margin-top: 50px;
+}

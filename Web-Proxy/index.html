@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Proxy</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <input type="text" id="urlInput" placeholder="Enter a website URL..."> 
-    <button onclick="loadWebsite()">Go</button>
+    <div class="container">
+        <input id="urlInput" type="text" placeholder="Enter a URL or search query..." onkeydown="handleKey(event)">
+        <button onclick="loadWebsite()">Go</button>
+    </div>
     <iframe id="displayFrame"></iframe>
-
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const BACKEND_URL = "https://proxy-bg98.onrender.com/"; // Change this
+const BACKEND_URL = "https://proxy-bg98.onrender.com"; // Change this
 
 function loadWebsite() {
     let url = document.getElementById('urlInput').value;

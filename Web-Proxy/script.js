@@ -1,20 +1,39 @@
-const BACKEND_URL = "https://proxy-bg98.onrender.com"; // Change this
+const PROXY_URL = "https://proxy-bg98.onrender.com";
 
-function loadWebsite() {
-    let url = document.getElementById('urlInput').value;
-
-    if (!url.startsWith('http') && !/\.\w{2,}/.test(url)) {
-        url = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
-    } else if (!url.startsWith('http')) {
-        url = 'https://' + url;
+async function fetchPage() {
+    const userInput = document.getElementById('urlInput').value.trim();
+    if (!userInput) {
+        alert("Please enter a URL!");
+        return;
     }
 
-    document.getElementById('displayFrame').src = `${BACKEND_URL}/fetch?url=${encodeURIComponent(url)}`;
-}
+    let formattedUrl = userInput;
 
-// Run search when pressing Enter
-function handleKey(event) {
-    if (event.key === "Enter") {
-        loadWebsite();
+    
+    if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = 'https://' + formattedUrl;
+    }
+
+    const proxyFetchUrl = `${PROXY_URL}/fetch?url=${encodeURIComponent(formattedUrl)}`;
+
+    try {
+        const response = await fetch(proxyFetchUrl, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Accept': 'text/html',
+                'User-Agent': 'Mozilla/5.0'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        
+        document.getElementById('output').src = proxyFetchUrl;
+    } catch (error) {
+        console.error("Fetch failed:", error);
+        alert("Failed to load page.");
     }
 }

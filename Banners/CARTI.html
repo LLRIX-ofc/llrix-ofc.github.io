@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I AM MUSIC Banners</title>
+  <link rel="icon" type="image/x-icon" href="./Carti/Icon.png">
+  <style>
+    @font-face {
+      font-family: 'Akira';
+      src: url('./Main/Akira.otf') format('opentype');
+    }
+
+    @font-face {
+      font-family: 'Roman';
+      src: url('./Carti/Roman.ttf') format('truetype');
+    }
+
+    @font-face {
+      font-family: 'Swiss';
+      src: url('./Carti/Swiss.otf') format('opentype');
+    }
+
+    body {
+      margin: 0;
+      font-family: Roman;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .start-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-family: 'Akira';
+      text-align: center;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+    }
+
+    #canvas {
+      border: 2px solid #fff;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    .input-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #333;
+      border-radius: 5px;
+      outline: none;
+      width: 300px;
+      text-align: center;
+      background-color: #1e1e1e;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    input[type="text"]::placeholder {
+      color: #666;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #333;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #555;
+    }
+
+    .downloadButton {
+      appearance: none;
+      background-color: #000000;
+      border: 2px solid #1A1A1A;
+      border-radius: 15px;
+      box-sizing: border-box;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-family: Akira;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 16px 24px;
+      text-align: center;
+      width: 100%;
+      transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+    }
+
+    .downloadButton:hover {
+      box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
+      transform: translateY(-2px);
+    }
+
+    .downloadButton:active {
+      box-shadow: none;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="start-screen" id="startScreen">
+    CLICK ANYWHERE TO START
+  </div>
+
+  <div class="container" id="mainContainer">
+    <h1 style="font-family: Roman;">I AM MUSIC Banners</h1>
+    <canvas id="canvas" width="1500" height="500"></canvas>
+    <div class="input-wrapper">
+      <input type="text" id="bannerText" style="font-family: Akira" placeholder="Enter your text (12 max)">
+      <button id="downloadButton" class="downloadButton">Download</button>
+    </div>
+  </div>
+
+  <audio id="startSound" src="./Carti/F1LTHY.mp3"></audio>
+
+  <script>
+    const startScreen = document.getElementById('startScreen');
+    const mainContainer = document.getElementById('mainContainer');
+    const startSound = document.getElementById('startSound');
+
+    // Start screen click event
+    startScreen.addEventListener('click', () => {
+      startScreen.style.display = 'none'; // Hide start screen
+      mainContainer.style.display = 'flex'; // Show main UI
+      startSound.play(); // Play sound
+    });
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const inputText = document.getElementById('bannerText');
+    const downloadButton = document.getElementById('downloadButton');
+
+    const BACKGROUND_URL = './Carti/Background.png';
+    const backgroundImage = new Image();
+    backgroundImage.src = BACKGROUND_URL;
+
+    backgroundImage.onload = () => drawCanvas();
+
+    inputText.addEventListener('input', () => {
+      if (inputText.value.length > 12) {
+        inputText.value = inputText.value.slice(0, 12);
+      }
+      drawCanvas();
+    });
+
+    function drawCanvas() {
+      const text = inputText.value.toUpperCase();
+      const fontSize = Math.max(200 - (text.length - 1) * 10, 50);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (text === "") {
+        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Bottom text (Roman)
+      ctx.font = `${fontSize}px Roman`;
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 10);
+
+      // Top text (Swiss)
+      ctx.font = `${fontSize - 20}px Swiss`;
+      ctx.fillStyle = '#000';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2 - 10);
+    }
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'banner.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    downloadButton.addEventListener('click', downloadImage);
+
+    drawCanvas();
+  </script>
+</body>
+</html>

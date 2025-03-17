@@ -194,16 +194,18 @@
       }
 
       // Bottom text (Roman)
-      ctx.font = `${fontSize}px Roman`;
+      ctx.font = `${fontSize}px Roman`; // Use template literals for dynamic font size
       ctx.fillStyle = '#000';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 10);
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2 + fontSize / 8); // Adjust vertical position
 
       // Top text (Swiss)
-      ctx.font = `${fontSize - 20}px Swiss`;
+      ctx.font = `${fontSize - 20}px Swiss`; // Use template literals for dynamic font size
       ctx.fillStyle = '#000';
-      ctx.fillText(text, canvas.width / 2, canvas.height / 2 - 10);
+      ctx.textAlign = 'center'; // Ensure text is centered
+      ctx.textBaseline = 'middle'; // Ensure text is vertically centered
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2 - fontSize / 8); // Adjust vertical position
     }
 
     function downloadImage() {

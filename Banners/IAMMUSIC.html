@@ -181,40 +181,49 @@
     });
 
     function drawCanvas() {
-      const text = inputText.value.toUpperCase();
-      const fontSize = Math.max(200 - (text.length - 1) * 10, 50);
+  const text = inputText.value.toUpperCase();
+  const fontSize = Math.max(200 - (text.length - 1) * 10, 50);
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (text === "") {
-        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-      } else {
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
+  if (text === "") {
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Bottom text (Roman)
-      ctx.font = `${fontSize}px Roman`; // Use template literals for dynamic font size
-      ctx.fillStyle = '#000';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, canvas.width / 2, canvas.height / 2 + fontSize / 8); // Adjust vertical position
+    // Bottom text (Roman)
+    ctx.font = `${fontSize}px Roman`;
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2 + fontSize / 8);
 
-      // Top text (Swiss)
-      ctx.font = `${fontSize - 20}px Swiss`; // Use template literals for dynamic font size
-      ctx.fillStyle = '#000';
-      ctx.textAlign = 'center'; // Ensure text is centered
-      ctx.textBaseline = 'middle'; // Ensure text is vertically centered
-      ctx.textBaseline = "hanging";
-      ctx.fillText(text, canvas.width / 2, canvas.height / 2 - fontSize / 8); // Adjust vertical position
-    }
+    // Top text (Swiss)
+    ctx.font = `${fontSize - 20}px Swiss`;
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.textBaseline = "hanging";
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2 - fontSize / 8);
+  }
+}
 
-    function downloadImage() {
-      const link = document.createElement('a');
-      link.download = 'banner.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }
+function downloadImage() {
+  const text = inputText.value.toUpperCase();
+  const link = document.createElement('a');
+  link.download = 'banner.png';
+
+  if (text === "") {
+    // Download image if no text is entered
+    link.href = backgroundImage.src; 
+  } else {
+    // Download canvas if text is entered
+    link.href = canvas.toDataURL('image/png');
+  }
+
+  link.click();
+}
 
     downloadButton.addEventListener('click', downloadImage);
 

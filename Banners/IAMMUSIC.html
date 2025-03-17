@@ -157,9 +157,9 @@
 
     // Start screen click event
     startScreen.addEventListener('click', () => {
-      startScreen.style.display = 'none'; // Hide start screen
-      mainContainer.style.display = 'flex'; // Show main UI
-      startSound.play(); // Play sound
+      startScreen.style.display = 'none';
+      mainContainer.style.display = 'flex';
+      startSound.play();
     });
 
     const canvas = document.getElementById('canvas');
@@ -181,49 +181,60 @@
     });
 
     function drawCanvas() {
-  const text = inputText.value.toUpperCase();
-  const fontSize = Math.max(200 - (text.length - 1) * 10, 50);
+      const text = inputText.value.toUpperCase();
+      const fontSize = Math.max(200 - (text.length - 1) * 10, 50);
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (text === "") {
-    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-  } else {
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (text === "") {
+        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Bottom text (Roman)
-    ctx.font = `${fontSize}px Roman`;
-    ctx.fillStyle = '#000';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, canvas.width / 2, canvas.height / 2 + fontSize / 8);
+        // Bottom text (Roman)
+        ctx.font = `${fontSize}px Roman`;
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
-    // Top text (Swiss)
-    ctx.font = `${fontSize - 20}px Swiss`;
-    ctx.fillStyle = '#000';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.textBaseline = "hanging";
-    ctx.fillText(text, canvas.width / 2, canvas.height / 2 - fontSize / 8);
-  }
-}
+        const textWidthRoman = ctx.measureText(text).width;
+        const textHeightRoman = fontSize; // Approximate height
 
-function downloadImage() {
-  const text = inputText.value.toUpperCase();
-  const link = document.createElement('a');
-  link.download = 'banner.png';
+        const xRoman = canvas.width / 2;
+        const yRoman = canvas.height / 2 + textHeightRoman / 4; // Adjust vertical position
 
-  if (text === "") {
-    // Download image if no text is entered
-    link.href = backgroundImage.src; 
-  } else {
-    // Download canvas if text is entered
-    link.href = canvas.toDataURL('image/png');
-  }
+        ctx.fillText(text, xRoman, yRoman);
 
-  link.click();
-}
+        // Top text (Swiss)
+        ctx.font = `${fontSize - 20}px Swiss`;
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const textWidthSwiss = ctx.measureText(text).width;
+        const textHeightSwiss = fontSize - 20; // Approximate height
+
+        const xSwiss = canvas.width / 2;
+        const ySwiss = canvas.height / 2 - textHeightSwiss / 4; // Adjust vertical position
+
+        ctx.fillText(text, xSwiss, ySwiss);
+      }
+    }
+
+    function downloadImage() {
+      const text = inputText.value.toUpperCase();
+      const link = document.createElement('a');
+      link.download = 'banner.png';
+
+      if (text === "") {
+        link.href = backgroundImage.src;
+      } else {
+        link.href = canvas.toDataURL('image/png');
+      }
+
+      link.click();
+    }
 
     downloadButton.addEventListener('click', downloadImage);
 

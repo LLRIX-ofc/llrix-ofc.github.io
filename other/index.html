@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download TS Files as Zip</title>
+    <script src="https://cdn.jsdelivr.net/npm/jszip/dist/jszip.min.js"></script>
+</head>
+<body>
+    <h1>Download TS Files as a Zip</h1>
+    <button onclick="downloadTsFiles()">Download TS Files</button>
+
+    <script>
+        async function downloadTsFiles() {
+            let i = 0;
+            let tsFiles = [];  // We'll store the fetched files here
+            let maxAttempts = 5;  // Max retry attempts
+            let failedAttempts = 0;
+
+            // URL of the TS segments (update this with the correct base URL)
+            const baseUrl = 'https://cdn-s.the-joi-database.com/bcdn_token=uc1xXf5lvvhHgm09qkK463rDTFQkTxz4a4d1u9f0oSI&expires=1747412923&token_path=%2Fvideos%2F18d6a71b63b201647ff65a1e/videos/18d6a71b63b201647ff65a1e/video_18d6a71b63b201647ff65a1e_1080p_';
+
+            const zip = new JSZip();
+
+            while (failedAttempts < maxAttempts) {
+                let url = `${baseUrl}${String(i).padStart(4, '0')}.ts`;
+
+                try {
+                    // Try to fetch the .ts file
+                    let response = await fetch(url);
+                    if (response.ok) {
+                        let blob = await response.blob();
+                        zip.file(`segment_${i}.ts`, blob);  // Add to zip
+                        tsFiles.push(blob);  // Add to the tsFiles array
+                        console.log(`Successfully fetched segment ${i}`);
+                        i++;  // Increase the segment number
+                        failedAttempts = 0;  // Reset failed attempts on success
+                    } else {
+                        console.log(`Failed to fetch segment ${i}, server responded with ${response.status}`);
+                        failedAttempts++;
+                        // Stop fetching when a file fails (404)
+                        if (response.status === 404) {
+                            console.log('Reached the end of the segments. Stopping download.');
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.log(`Error fetching segment ${i}: ${error}`);
+                    failedAttempts++;
+                    if (failedAttempts >= maxAttempts) {
+                        console.log('Max retry attempts reached. Stopping download.');
+                        break;
+                    }
+                }
+            }
+
+            // If we have successfully fetched files, generate the zip and download it
+            if (tsFiles.length > 0) {
+                zip.generateAsync({ type: 'blob' }).then(function(content) {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(content);
+                    link.download = "ts_segments.zip";  // Name of the downloaded zip file
+                    link.click();  // Trigger the download
+                    console.log('Download started!');
+                });
+            } else {
+                alert('No segments were successfully fetched.');
+            }
+        }
+    </script>
+</body>
+</html>

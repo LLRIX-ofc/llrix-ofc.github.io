@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Audio Output Info</title>
+</head>
+<body>
+<h1>Audio Output Devices</h1>
+<pre id="output">Checking...</pre>
+
+<script>
+(async () => {
+  try {
+    // Request permission to access media devices
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const outputs = devices.filter(d => d.kind === 'audiooutput');
+
+    if (outputs.length === 0) {
+      document.getElementById('output').textContent = 'No output devices detected.';
+    } else {
+      document.getElementById('output').textContent =
+        outputs.map(o => `Label: ${o.label || "(no label)"}\nID: ${o.deviceId}`).join('\n\n');
+    }
+  } catch (err) {
+    document.getElementById('output').textContent = 'Error: ' + err;
+  }
+})();
+</script>
+</body>
+</html>

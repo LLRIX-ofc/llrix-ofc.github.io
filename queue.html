@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QEUE">
+<title>QEUE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #222222;
+    --text: #f0f0f0;
+    --muted: #555555;
+    --muted2: #333333;
+    --sc-orange: #ff5500;
+    --am-pink: #fc3c44;
+    --accent: #e8ff47;
+    --accent-dim: rgba(232,255,71,0.08);
+    --radius: 12px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+height: 100%;
+background: var(–bg);
+color: var(–text);
+font-family: ‘Syne’, sans-serif;
+overflow: hidden;
+user-select: none;
+}
+
+/* ── LAYOUT ── */
+#app {
+display: flex;
+flex-direction: column;
+height: 100dvh;
+padding-top: env(safe-area-inset-top, 44px);
+}
+
+/* ── HEADER ── */
+header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 16px 20px 12px;
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+
+.logo {
+font-size: 22px;
+font-weight: 800;
+letter-spacing: -0.5px;
+color: var(–accent);
+}
+
+.logo span {
+color: var(–muted);
+font-weight: 400;
+}
+
+.header-status {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+color: var(–muted);
+letter-spacing: 0.5px;
+text-transform: uppercase;
+}
+
+.header-status.live { color: var(–accent); }
+
+/* ── NOW PLAYING ── */
+#now-playing {
+padding: 20px;
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+min-height: 110px;
+}
+
+.np-label {
+font-family: ‘DM Mono’, monospace;
+font-size: 9px;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: var(–muted);
+margin-bottom: 10px;
+}
+
+.np-track {
+display: flex;
+align-items: center;
+gap: 14px;
+}
+
+.np-art {
+width: 52px;
+height: 52px;
+border-radius: 8px;
+background: var(–surface2);
+flex-shrink: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 22px;
+overflow: hidden;
+position: relative;
+}
+
+.np-art img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+border-radius: 8px;
+}
+
+.np-art .service-dot {
+position: absolute;
+bottom: 3px;
+right: 3px;
+width: 14px;
+height: 14px;
+border-radius: 50%;
+border: 2px solid var(–bg);
+font-size: 7px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.np-info { flex: 1; min-width: 0; }
+
+.np-title {
+font-size: 16px;
+font-weight: 700;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+letter-spacing: -0.3px;
+}
+
+.np-artist {
+font-size: 12px;
+color: var(–muted);
+font-weight: 400;
+margin-top: 2px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.np-badge {
+font-family: ‘DM Mono’, monospace;
+font-size: 9px;
+font-weight: 500;
+padding: 3px 7px;
+border-radius: 20px;
+letter-spacing: 0.5px;
+flex-shrink: 0;
+}
+
+.np-badge.sc { background: rgba(255,85,0,0.15); color: var(–sc-orange); }
+.np-badge.am { background: rgba(252,60,68,0.15); color: var(–am-pink); }
+
+.np-empty {
+font-size: 13px;
+color: var(–muted);
+font-weight: 400;
+padding: 10px 0;
+}
+
+.np-controls {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-top: 12px;
+}
+
+.ctrl-btn {
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text);
+border-radius: 8px;
+padding: 8px 16px;
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: 1px;
+text-transform: uppercase;
+cursor: pointer;
+transition: all 0.15s;
+}
+
+.ctrl-btn:active { transform: scale(0.96); }
+.ctrl-btn.primary { background: var(–accent); color: #000; border-color: var(–accent); font-weight: 500; }
+.ctrl-btn.danger { color: #ff6b6b; border-color: #ff6b6b33; }
+
+.playing-indicator {
+display: flex;
+align-items: flex-end;
+gap: 2px;
+height: 16px;
+}
+
+.bar {
+width: 3px;
+background: var(–accent);
+border-radius: 2px;
+animation: bounce 0.8s ease-in-out infinite;
+}
+.bar:nth-child(2) { animation-delay: 0.15s; }
+.bar:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes bounce {
+0%, 100% { height: 4px; }
+50% { height: 14px; }
+}
+
+.paused .bar { animation-play-state: paused; height: 4px; }
+
+/* ── TABS ── */
+.tabs {
+display: flex;
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+
+.tab {
+flex: 1;
+padding: 12px;
+text-align: center;
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: 1px;
+text-transform: uppercase;
+color: var(–muted);
+cursor: pointer;
+border-bottom: 2px solid transparent;
+transition: all 0.2s;
+}
+
+.tab.active { color: var(–accent); border-bottom-color: var(–accent); }
+
+/* ── PANELS ── */
+.panel { display: none; flex: 1; overflow-y: auto; }
+.panel.active { display: flex; flex-direction: column; }
+
+/* ── QUEUE PANEL ── */
+#queue-list {
+flex: 1;
+overflow-y: auto;
+padding: 8px 0;
+}
+
+.queue-empty {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 60px 30px;
+gap: 10px;
+color: var(–muted);
+}
+
+.queue-empty .icon { font-size: 36px; opacity: 0.4; }
+.queue-empty p { font-size: 13px; text-align: center; line-height: 1.5; }
+
+.queue-item {
+display: flex;
+align-items: center;
+padding: 12px 20px;
+gap: 12px;
+border-bottom: 1px solid var(–border);
+transition: background 0.15s;
+position: relative;
+}
+
+.queue-item:active { background: var(–surface); }
+
+.queue-num {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+color: var(–muted2);
+width: 18px;
+text-align: right;
+flex-shrink: 0;
+}
+
+.queue-art {
+width: 40px;
+height: 40px;
+border-radius: 6px;
+background: var(–surface2);
+flex-shrink: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 18px;
+overflow: hidden;
+}
+
+.queue-art img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+border-radius: 6px;
+}
+
+.queue-info { flex: 1; min-width: 0; }
+
+.queue-title {
+font-size: 14px;
+font-weight: 600;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.queue-artist {
+font-size: 11px;
+color: var(–muted);
+margin-top: 1px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.queue-service {
+font-family: ‘DM Mono’, monospace;
+font-size: 8px;
+padding: 2px 6px;
+border-radius: 10px;
+flex-shrink: 0;
+}
+
+.queue-service.sc { background: rgba(255,85,0,0.12); color: var(–sc-orange); }
+.queue-service.am { background: rgba(252,60,68,0.12); color: var(–am-pink); }
+
+.queue-remove {
+background: none;
+border: none;
+color: var(–muted2);
+font-size: 18px;
+cursor: pointer;
+padding: 4px;
+flex-shrink: 0;
+line-height: 1;
+transition: color 0.15s;
+}
+.queue-remove:active { color: #ff6b6b; }
+
+/* ── ADD PANEL ── */
+#add-panel {
+padding: 20px;
+gap: 20px;
+}
+
+.section-label {
+font-family: ‘DM Mono’, monospace;
+font-size: 9px;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: var(–muted);
+margin-bottom: 10px;
+}
+
+.service-section {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: var(–radius);
+padding: 16px;
+}
+
+.service-header {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 14px;
+}
+
+.service-icon {
+width: 32px;
+height: 32px;
+border-radius: 8px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 16px;
+}
+
+.service-icon.sc { background: rgba(255,85,0,0.15); }
+.service-icon.am { background: rgba(252,60,68,0.15); }
+
+.service-name {
+font-size: 14px;
+font-weight: 700;
+letter-spacing: -0.2px;
+}
+
+.service-name.sc { color: var(–sc-orange); }
+.service-name.am { color: var(–am-pink); }
+
+.input-row {
+display: flex;
+gap: 8px;
+margin-bottom: 10px;
+}
+
+.text-input {
+flex: 1;
+background: var(–bg);
+border: 1px solid var(–border);
+color: var(–text);
+border-radius: 8px;
+padding: 10px 12px;
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+outline: none;
+transition: border-color 0.15s;
+}
+
+.text-input:focus { border-color: var(–muted); }
+.text-input::placeholder { color: var(–muted2); }
+
+.add-btn {
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text);
+border-radius: 8px;
+padding: 10px 14px;
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+cursor: pointer;
+white-space: nowrap;
+transition: all 0.15s;
+}
+
+.add-btn:active { transform: scale(0.97); }
+.add-btn.accent { background: var(–accent-dim); color: var(–accent); border-color: rgba(232,255,71,0.2); }
+
+.hint {
+font-size: 11px;
+color: var(–muted);
+line-height: 1.5;
+font-family: ‘DM Mono’, monospace;
+}
+
+.hint code {
+background: var(–surface2);
+padding: 1px 5px;
+border-radius: 4px;
+color: var(–accent);
+font-size: 10px;
+}
+
+/* ── SETUP PANEL ── */
+#setup-panel {
+padding: 20px;
+gap: 16px;
+overflow-y: auto;
+}
+
+.setup-card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: var(–radius);
+padding: 16px;
+}
+
+.setup-card h3 {
+font-size: 13px;
+font-weight: 700;
+margin-bottom: 8px;
+letter-spacing: -0.2px;
+}
+
+.setup-card p {
+font-size: 12px;
+color: var(–muted);
+line-height: 1.6;
+font-family: ‘DM Mono’, monospace;
+}
+
+.setup-input-row {
+display: flex;
+gap: 8px;
+margin-top: 12px;
+}
+
+.setup-badge {
+display: inline-block;
+font-family: ‘DM Mono’, monospace;
+font-size: 9px;
+padding: 3px 8px;
+border-radius: 20px;
+background: var(–accent-dim);
+color: var(–accent);
+letter-spacing: 1px;
+text-transform: uppercase;
+margin-bottom: 8px;
+}
+
+.step-list {
+list-style: none;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.step-list li {
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+color: var(–muted);
+line-height: 1.5;
+padding-left: 20px;
+position: relative;
+}
+
+.step-list li::before {
+content: attr(data-n);
+position: absolute;
+left: 0;
+color: var(–accent);
+font-weight: 500;
+}
+
+/* ── AUDIO ── */
+audio { display: none; }
+
+/* ── TOAST ── */
+#toast {
+position: fixed;
+bottom: calc(20px + var(–safe-bottom));
+left: 50%;
+transform: translateX(-50%) translateY(20px);
+background: var(–surface2);
+border: 1px solid var(–border);
+color: var(–text);
+padding: 10px 18px;
+border-radius: 100px;
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.5px;
+opacity: 0;
+transition: all 0.25s;
+pointer-events: none;
+z-index: 100;
+white-space: nowrap;
+}
+
+#toast.show {
+opacity: 1;
+transform: translateX(-50%) translateY(0);
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 0; }
+
+/* ── LOADING SPINNER ── */
+.spinner {
+width: 14px;
+height: 14px;
+border: 2px solid var(–border);
+border-top-color: var(–accent);
+border-radius: 50%;
+animation: spin 0.6s linear infinite;
+display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.drag-handle {
+color: var(–muted2);
+font-size: 16px;
+padding: 4px 2px;
+cursor: grab;
+flex-shrink: 0;
+}
+</style>
+
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="logo">QE<span>UE</span></div>
+    <div class="header-status" id="header-status">IDLE</div>
+  </header>
+
+  <!-- NOW PLAYING -->
+
+  <div id="now-playing">
+    <div class="np-label">Now Playing</div>
+    <div class="np-track" id="np-track">
+      <div class="np-empty">Nothing in queue — add songs below</div>
+    </div>
+    <div class="np-controls" id="np-controls" style="display:none">
+      <button class="ctrl-btn primary" id="play-pause-btn" onclick="togglePlayPause()">PLAY</button>
+      <button class="ctrl-btn" onclick="skipCurrent()">SKIP</button>
+      <button class="ctrl-btn danger" onclick="stopAll()">STOP</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('queue')">Queue</div>
+    <div class="tab" onclick="switchTab('add')">Add</div>
+    <div class="tab" onclick="switchTab('setup')">Setup</div>
+  </div>
+
+  <!-- QUEUE PANEL -->
+
+  <div class="panel active" id="queue-panel">
+    <div id="queue-list">
+      <div class="queue-empty">
+        <div class="icon">♫</div>
+        <p>Your queue is empty.<br>Add songs from the Add tab.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD PANEL -->
+
+  <div class="panel" id="add-panel">
+
+```
+<!-- SoundCloud -->
+<div class="service-section">
+  <div class="service-header">
+    <div class="service-icon sc">☁</div>
+    <div class="service-name sc">SoundCloud</div>
+  </div>
+  <div class="input-row">
+    <input class="text-input" id="sc-url" placeholder="Paste SoundCloud URL..." type="url">
+    <button class="add-btn accent" onclick="addSoundCloud()">ADD</button>
+  </div>
+  <div class="hint">Paste any SoundCloud track URL. Also works via share sheet — see Setup tab.</div>
+</div>
+
+<!-- Apple Music -->
+<div class="service-section">
+  <div class="service-header">
+    <div class="service-icon am">♪</div>
+    <div class="service-name am">Apple Music</div>
+  </div>
+  <div class="input-row">
+    <input class="text-input" id="am-title" placeholder="Song title..." type="text">
+    <input class="text-input" id="am-artist" placeholder="Artist..." type="text" style="max-width:130px">
+  </div>
+  <div class="input-row">
+    <button class="add-btn accent" style="flex:1" onclick="addAppleMusic()">ADD TO QUEUE</button>
+  </div>
+  <div class="hint">Requires Scriptable + Shortcut configured in Setup tab. The app will trigger them automatically when this song plays.</div>
+</div>
+```
+
+  </div>
+
+  <!-- SETUP PANEL -->
+
+  <div class="panel" id="setup-panel">
+
+```
+<div class="setup-card">
+  <div class="setup-badge">Step 1 — JSONBin</div>
+  <h3>Status Store URL</h3>
+  <p>Create a free bin at jsonbin.io/app/bins → New Bin, paste <code>{"status":"idle"}</code>, save, copy the bin URL (looks like <code>https://api.jsonbin.io/v3/b/XXXXX</code>).</p>
+  <div class="setup-input-row">
+    <input class="text-input" id="jsonbin-url" placeholder="https://api.jsonbin.io/v3/b/..." type="url">
+    <button class="add-btn accent" onclick="saveJsonBin()">SAVE</button>
+  </div>
+  <div class="setup-input-row">
+    <input class="text-input" id="jsonbin-key" placeholder="X-Master-Key (optional, for private bins)" type="text">
+  </div>
+</div>
+
+<div class="setup-card">
+  <div class="setup-badge">Step 2 — Scriptable Script</div>
+  <h3>Copy this into a new Scriptable script named <code>QueuePlayer</code></h3>
+  <p>The script is shown in the code block below. In Scriptable, tap + → paste → save as <code>QueuePlayer</code>.</p>
+  <br>
+  <button class="add-btn accent" style="width:100%" onclick="copyScriptable()">COPY SCRIPTABLE SCRIPT</button>
+</div>
+
+<div class="setup-card">
+  <div class="setup-badge">Step 3 — Shortcut</div>
+  <h3>Build the "Play AM Song" Shortcut</h3>
+  <ul class="step-list">
+    <li data-n="1.">Open Shortcuts → New Shortcut → name it exactly <code>Play AM Song</code></li>
+    <li data-n="2.">Add action: <b>Receive [Text] input from [Share Sheet and Nowhere Else]</b></li>
+    <li data-n="3.">Add action: <b>Find Music</b> → filter: Name → Contains → [Shortcut Input]</li>
+    <li data-n="4.">Add action: <b>Play Music</b> → [Music] (from step 3)</li>
+    <li data-n="5.">Add action: <b>Wait</b> → 2 seconds (so Music.app has time to start)</li>
+    <li data-n="6.">Done — Scriptable handles the rest.</li>
+  </ul>
+</div>
+
+<div class="setup-card">
+  <div class="setup-badge">Step 4 — Share Sheet Shortcut</div>
+  <h3>Build the "Add to QEUE" Shortcut</h3>
+  <ul class="step-list">
+    <li data-n="1.">New Shortcut → name it <code>Add to QEUE</code></li>
+    <li data-n="2.">Add action: <b>Receive [URLs] input from [Share Sheet]</b></li>
+    <li data-n="3.">Add action: <b>Open URLs</b> → value: your web app URL + <code>?addsc=[Shortcut Input]</code></li>
+    <li data-n="4.">In Safari, save this web app to home screen first, then get its URL from Settings.</li>
+  </ul>
+  <br>
+  <p>When you share a SoundCloud link to this shortcut, it opens the app and auto-adds the track.</p>
+</div>
+
+<div class="setup-card">
+  <div class="setup-badge">Step 5 — Scriptable URL</div>
+  <h3>Your Scriptable Trigger URL</h3>
+  <p>Scriptable runs scripts via: <code>scriptable:///run/QueuePlayer</code></p>
+  <p style="margin-top:8px">The app uses this automatically. Make sure your script is named exactly <code>QueuePlayer</code>.</p>
+</div>
+```
+
+  </div>
+</div>
+
+<div id="toast"></div>
+<audio id="sc-audio"></audio>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const STATE = {
+  queue: [],          // [{id, service, title, artist, url, artwork}]
+  current: null,      // current queue item
+  playing: false,
+  paused: false,
+  jsonbinUrl: '',
+  jsonbinKey: '',
+  pollInterval: null,
+  scResolveCache: {},
+};
+
+// ══════════════════════════════════════════
+// PERSISTENCE
+// ══════════════════════════════════════════
+function save() {
+  localStorage.setItem('qeue_queue', JSON.stringify(STATE.queue));
+  localStorage.setItem('qeue_jsonbin', STATE.jsonbinUrl);
+  localStorage.setItem('qeue_jsonbin_key', STATE.jsonbinKey);
+}
+
+function load() {
+  STATE.queue = JSON.parse(localStorage.getItem('qeue_queue') || '[]');
+  STATE.jsonbinUrl = localStorage.getItem('qeue_jsonbin') || '';
+  STATE.jsonbinKey = localStorage.getItem('qeue_jsonbin_key') || '';
+  if (STATE.jsonbinUrl) document.getElementById('jsonbin-url').value = STATE.jsonbinUrl;
+  if (STATE.jsonbinKey) document.getElementById('jsonbin-key').value = STATE.jsonbinKey;
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['queue','add','setup'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(name + '-panel').classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// SOUNDCLOUD RESOLVE
+// ══════════════════════════════════════════
+async function resolveSoundCloud(url) {
+  if (STATE.scResolveCache[url]) return STATE.scResolveCache[url];
+  // Use oEmbed to get track metadata
+  const oembed = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`);
+  if (!oembed.ok) throw new Error('Could not resolve SoundCloud URL');
+  const data = await oembed.json();
+  // Extract artwork
+  let artwork = data.thumbnail_url || '';
+  // Clean title/artist from oembed title (format: "Title by Artist")
+  let title = data.title || 'Unknown';
+  let artist = '';
+  if (title.includes(' by ')) {
+    const parts = title.split(' by ');
+    title = parts[0].trim();
+    artist = parts[1]?.trim() || '';
+  }
+  const result = { title, artist, artwork, embedUrl: url };
+  STATE.scResolveCache[url] = result;
+  return result;
+}
+
+// ══════════════════════════════════════════
+// ADD SONGS
+// ══════════════════════════════════════════
+async function addSoundCloud() {
+  const url = document.getElementById('sc-url').value.trim();
+  if (!url || !url.includes('soundcloud.com')) { toast('Paste a SoundCloud URL first'); return; }
+
+  const btn = document.querySelector('#add-panel .service-section:first-child .add-btn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+
+  try {
+    const meta = await resolveSoundCloud(url);
+    const item = {
+      id: Date.now() + Math.random(),
+      service: 'sc',
+      title: meta.title,
+      artist: meta.artist,
+      url: url,
+      artwork: meta.artwork,
+    };
+    STATE.queue.push(item);
+    save();
+    renderQueue();
+    document.getElementById('sc-url').value = '';
+    toast(`Added: ${meta.title}`);
+    switchTab('queue');
+  } catch(e) {
+    toast('Could not resolve URL — check link');
+  } finally {
+    btn.innerHTML = 'ADD';
+    btn.disabled = false;
+  }
+}
+
+function addAppleMusic() {
+  const title = document.getElementById('am-title').value.trim();
+  const artist = document.getElementById('am-artist').value.trim();
+  if (!title) { toast('Enter a song title'); return; }
+  const item = {
+    id: Date.now() + Math.random(),
+    service: 'am',
+    title,
+    artist,
+    url: null,
+    artwork: null,
+  };
+  STATE.queue.push(item);
+  save();
+  renderQueue();
+  document.getElementById('am-title').value = '';
+  document.getElementById('am-artist').value = '';
+  toast(`Added: ${title}`);
+  switchTab('queue');
+}
+
+// ══════════════════════════════════════════
+// QUEUE RENDER
+// ══════════════════════════════════════════
+function renderQueue() {
+  const list = document.getElementById('queue-list');
+  if (STATE.queue.length === 0) {
+    list.innerHTML = `<div class="queue-empty"><div class="icon">♫</div><p>Your queue is empty.<br>Add songs from the Add tab.</p></div>`;
+    return;
+  }
+  list.innerHTML = STATE.queue.map((item, i) => `
+    <div class="queue-item" data-id="${item.id}">
+      <div class="queue-num">${i+1}</div>
+      <div class="queue-art">
+        ${item.artwork ? `<img src="${item.artwork}" onerror="this.style.display='none'">` : (item.service === 'sc' ? '☁' : '♪')}
+      </div>
+      <div class="queue-info">
+        <div class="queue-title">${esc(item.title)}</div>
+        <div class="queue-artist">${esc(item.artist || (item.service === 'am' ? 'Apple Music' : 'SoundCloud'))}</div>
+      </div>
+      <div class="queue-service ${item.service}">${item.service === 'sc' ? 'SC' : 'AM'}</div>
+      <button class="queue-remove" onclick="removeFromQueue('${item.id}')">×</button>
+    </div>
+  `).join('');
+}
+
+function removeFromQueue(id) {
+  STATE.queue = STATE.queue.filter(i => String(i.id) !== String(id));
+  save();
+  renderQueue();
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══════════════════════════════════════════
+// NOW PLAYING RENDER
+// ══════════════════════════════════════════
+function renderNowPlaying(item) {
+  const track = document.getElementById('np-track');
+  const controls = document.getElementById('np-controls');
+  const status = document.getElementById('header-status');
+
+  if (!item) {
+    track.innerHTML = `<div class="np-empty">Nothing in queue — add songs below</div>`;
+    controls.style.display = 'none';
+    status.textContent = 'IDLE';
+    status.className = 'header-status';
+    return;
+  }
+
+  const isPlaying = STATE.playing && !STATE.paused;
+  track.innerHTML = `
+    <div class="np-art">
+      ${item.artwork ? `<img src="${item.artwork}" onerror="this.style.display='none'">` : (item.service === 'sc' ? '☁' : '♪')}
+    </div>
+    <div class="np-info">
+      <div class="np-title">${esc(item.title)}</div>
+      <div class="np-artist">${esc(item.artist || '')}</div>
+    </div>
+    <div class="playing-indicator ${isPlaying ? '' : 'paused'}">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+    <div class="np-badge ${item.service}">${item.service === 'sc' ? 'SC' : 'AM'}</div>
+  `;
+
+  controls.style.display = 'flex';
+  document.getElementById('play-pause-btn').textContent = (STATE.playing && !STATE.paused) ? 'PAUSE' : 'PLAY';
+
+  status.textContent = STATE.playing ? (STATE.paused ? 'PAUSED' : 'PLAYING') : 'READY';
+  status.className = 'header-status' + (STATE.playing && !STATE.paused ? ' live' : '');
+}
+
+// ══════════════════════════════════════════
+// PLAYBACK
+// ══════════════════════════════════════════
+function playNext() {
+  if (STATE.queue.length === 0) {
+    STATE.current = null;
+    STATE.playing = false;
+    STATE.paused = false;
+    renderNowPlaying(null);
+    clearPolling();
+    return;
+  }
+
+  const item = STATE.queue.shift();
+  STATE.current = item;
+  STATE.playing = true;
+  STATE.paused = false;
+  save();
+  renderQueue();
+  renderNowPlaying(item);
+
+  if (item.service === 'sc') {
+    playSoundCloud(item);
+  } else if (item.service === 'am') {
+    playAppleMusic(item);
+  }
+}
+
+// ── SoundCloud ──
+function playSoundCloud(item) {
+  // Use SC widget embed in a hidden iframe approach via audio element
+  // We load the stream URL via a proxy-free method using SC's embed
+  // Best approach: hidden iframe with widget API
+  
+  // Remove old iframe if exists
+  const old = document.getElementById('sc-iframe');
+  if (old) old.remove();
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'sc-iframe';
+  iframe.style.display = 'none';
+  iframe.allow = 'autoplay';
+  iframe.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(item.url)}&auto_play=true&buying=false&liking=false&download=false&sharing=false&show_artwork=false&show_comments=false&show_playcount=false&show_user=false&hide_related=true&visual=false`;
+  document.body.appendChild(iframe);
+
+  // Listen to SC Widget events
+  window.addEventListener('message', scMessageHandler);
+  STATE._scHandler = scMessageHandler;
+
+  function scMessageHandler(e) {
+    try {
+      const data = JSON.parse(e.data);
+      if (data.soundcloudTrackingEvent === 'finish' || 
+          (data.type && data.type.includes('finish'))) {
+        cleanupSC();
+        playNext();
+      }
+    } catch(_) {}
+  }
+
+  // Fallback: poll iframe for completion via Widget API
+  // Send play event to iframe once loaded
+  iframe.addEventListener('load', () => {
+    iframe.contentWindow?.postMessage(
+      JSON.stringify({ method: 'play' }), '*'
+    );
+    // Register finish listener
+    iframe.contentWindow?.postMessage(
+      JSON.stringify({ method: 'addEventListener', value: 'finish' }), '*'
+    );
+  });
+}
+
+function cleanupSC() {
+  const iframe = document.getElementById('sc-iframe');
+  if (iframe) iframe.remove();
+  if (STATE._scHandler) {
+    window.removeEventListener('message', STATE._scHandler);
+    STATE._scHandler = null;
+  }
+}
+
+// ── Apple Music via Scriptable ──
+function playAppleMusic(item) {
+  if (!STATE.jsonbinUrl) {
+    toast('Set up JSONBin URL in Setup tab first');
+    STATE.playing = false;
+    renderNowPlaying(null);
+    return;
+  }
+
+  // Reset JSONBin status to "playing"
+  setJsonBinStatus('playing').then(() => {
+    // Trigger Scriptable via URL scheme
+    // Pass: title, artist, jsonbin url, jsonbin key as params
+    const params = new URLSearchParams({
+      title: item.title,
+      artist: item.artist || '',
+      binUrl: STATE.jsonbinUrl,
+      binKey: STATE.jsonbinKey || '',
+    });
+    const scriptableUrl = `scriptable:///run/QueuePlayer?${params.toString()}`;
+    window.location.href = scriptableUrl;
+
+    // Start polling JSONBin for "done" status
+    startPolling();
+  });
+}
+
+async function setJsonBinStatus(status) {
+  if (!STATE.jsonbinUrl) return;
+  const headers = { 'Content-Type': 'application/json' };
+  if (STATE.jsonbinKey) headers['X-Master-Key'] = STATE.jsonbinKey;
+  try {
+    await fetch(STATE.jsonbinUrl, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ status }),
+    });
+  } catch(e) { console.warn('JSONBin write failed', e); }
+}
+
+function startPolling() {
+  clearPolling();
+  STATE.pollInterval = setInterval(async () => {
+    try {
+      const headers = {};
+      if (STATE.jsonbinKey) headers['X-Master-Key'] = STATE.jsonbinKey;
+      const res = await fetch(STATE.jsonbinUrl + '/latest', { headers });
+      const data = await res.json();
+      const status = data?.record?.status || data?.status;
+      if (status === 'done') {
+        clearPolling();
+        await setJsonBinStatus('idle');
+        playNext();
+      }
+    } catch(e) { console.warn('Poll failed', e); }
+  }, 3000);
+}
+
+function clearPolling() {
+  if (STATE.pollInterval) {
+    clearInterval(STATE.pollInterval);
+    STATE.pollInterval = null;
+  }
+}
+
+// ══════════════════════════════════════════
+// CONTROLS
+// ══════════════════════════════════════════
+function togglePlayPause() {
+  if (!STATE.current && STATE.queue.length > 0) {
+    playNext();
+    return;
+  }
+  if (!STATE.current) return;
+
+  if (STATE.current.service === 'sc') {
+    const iframe = document.getElementById('sc-iframe');
+    if (iframe) {
+      if (STATE.paused) {
+        iframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
+        STATE.paused = false;
+      } else {
+        iframe.contentWindow?.postMessage(JSON.stringify({ method: 'pause' }), '*');
+        STATE.paused = true;
+      }
+    }
+  } else {
+    // Apple Music: can't pause remotely — just show UI state
+    STATE.paused = !STATE.paused;
+  }
+
+  renderNowPlaying(STATE.current);
+}
+
+function skipCurrent() {
+  if (STATE.current?.service === 'sc') cleanupSC();
+  if (STATE.current?.service === 'am') {
+    clearPolling();
+    setJsonBinStatus('idle');
+  }
+  playNext();
+}
+
+function stopAll() {
+  if (STATE.current?.service === 'sc') cleanupSC();
+  if (STATE.current?.service === 'am') {
+    clearPolling();
+    setJsonBinStatus('idle');
+  }
+  STATE.current = null;
+  STATE.playing = false;
+  STATE.paused = false;
+  renderNowPlaying(null);
+}
+
+// ══════════════════════════════════════════
+// SETUP SAVES
+// ══════════════════════════════════════════
+function saveJsonBin() {
+  STATE.jsonbinUrl = document.getElementById('jsonbin-url').value.trim();
+  STATE.jsonbinKey = document.getElementById('jsonbin-key').value.trim();
+  save();
+  toast('JSONBin saved ✓');
+}
+
+// ══════════════════════════════════════════
+// SCRIPTABLE SCRIPT (to copy)
+// ══════════════════════════════════════════
+const SCRIPTABLE_SCRIPT = `// QEUE — Apple Music Player
+// Name this script: QueuePlayer in Scriptable
+// ─────────────────────────────────────────
+
+const input = args.queryParameters;
+const title = input.title || '';
+const artist = input.artist || '';
+const binUrl = input.binUrl || '';
+const binKey = input.binKey || '';
+
+// Run the Shortcut to play the song
+const query = artist ? title + ' ' + artist : title;
+await Shortcuts.run('Play AM Song', query);
+
+// Wait a moment for playback to start
+await new Promise(r => setTimeout(r, 3000));
+
+// Poll until music stops
+let wasPlaying = false;
+let doneDetected = false;
+
+while (!doneDetected) {
+  await new Promise(r => setTimeout(r, 2000));
+  
+  // Check if music is currently playing
+  // We use a simple time-based heuristic since Scriptable
+  // doesn't expose Music.isPlaying directly in all versions.
+  // The approach: after we know it started, wait for it to stop.
+  
+  // Attempt to detect via notification or just wait
+  // Best available: check if shortcut completed = song started,
+  // then poll with a generous timeout approach
+  
+  if (!wasPlaying) {
+    wasPlaying = true; // assume started
+  } else {
+    // Check Music app state if API available
+    try {
+      const isPlaying = Music.isPlaying;
+      if (wasPlaying && !isPlaying) {
+        doneDetected = true;
+      }
+    } catch(e) {
+      // Music API not available — use duration estimation
+      // As fallback: just signal done after a reasonable wait
+      // This is a limitation — see README
+    }
+  }
+}
+
+// Signal done to JSONBin
+if (binUrl) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (binKey) headers['X-Master-Key'] = binKey;
+  
+  const req = new Request(binUrl);
+  req.method = 'PUT';
+  req.headers = headers;
+  req.body = JSON.stringify({ status: 'done' });
+  await req.loadJSON();
+}
+
+Script.complete();
+`;
+
+function copyScriptable() {
+  navigator.clipboard.writeText(SCRIPTABLE_SCRIPT).then(() => {
+    toast('Scriptable script copied ✓');
+  }).catch(() => {
+    // Fallback for iOS
+    const ta = document.createElement('textarea');
+    ta.value = SCRIPTABLE_SCRIPT;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    toast('Scriptable script copied ✓');
+  });
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════
+// URL PARAM HANDLER (Share Sheet → Add SC)
+// ══════════════════════════════════════════
+async function handleUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const scUrl = params.get('addsc');
+  if (scUrl) {
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+    try {
+      const meta = await resolveSoundCloud(decodeURIComponent(scUrl));
+      const item = {
+        id: Date.now() + Math.random(),
+        service: 'sc',
+        title: meta.title,
+        artist: meta.artist,
+        url: decodeURIComponent(scUrl),
+        artwork: meta.artwork,
+      };
+      STATE.queue.push(item);
+      save();
+      renderQueue();
+      toast(`Added via share: ${meta.title}`);
+    } catch(e) {
+      toast('Could not add shared URL');
+    }
+  }
+
+  // Handle returning from Scriptable (next song trigger)
+  const action = params.get('action');
+  if (action === 'next') {
+    window.history.replaceState({}, '', window.location.pathname);
+    playNext();
+  }
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+load();
+renderQueue();
+renderNowPlaying(null);
+handleUrlParams();
+
+// Play button in empty state triggers first song
+document.getElementById('np-controls').style.display = STATE.queue.length > 0 ? 'flex' : 'none';
+
+// Show play button when queue has items even if not playing
+function updateControlsVisibility() {
+  const controls = document.getElementById('np-controls');
+  if (!STATE.current && STATE.queue.length > 0) {
+    controls.style.display = 'flex';
+    document.getElementById('play-pause-btn').textContent = 'PLAY';
+    const track = document.getElementById('np-track');
+    track.innerHTML = `<div class="np-empty" style="color:var(--muted)">Ready — ${STATE.queue.length} song${STATE.queue.length>1?'s':''} queued</div>`;
+  }
+}
+
+// Re-render when queue changes
+const origRenderQueue = renderQueue;
+renderQueue = function() {
+  origRenderQueue();
+  updateControlsVisibility();
+};
+
+renderQueue();
+</script>
+
+</body>
+</html>

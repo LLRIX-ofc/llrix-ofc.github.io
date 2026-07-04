@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LRC Builder</title>
+<style>
+  :root {
+    --bg: #121212;
+    --panel: #1a1a1a;
+    --accent: #7c9a92;
+    --text: #f2f2f2;
+    --muted: #9a9a9a;
+    --warn: #d9a441;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', 'Segoe UI', monospace;
+    margin: 0;
+    padding: 24px 16px 60px;
+    display: flex;
+    justify-content: center;
+  }
+  .wrap { width: 100%; max-width: 720px; }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    margin: 0 0 4px;
+    letter-spacing: 0.5px;
+  }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 140px; }
+  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  input, textarea {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid #2c2c2c;
+    color: var(--text);
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  textarea { resize: vertical; }
+  #input { height: 220px; }
+  #output { height: 220px; }
+  .section { margin-top: 22px; }
+  .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  button {
+    background: var(--accent);
+    color: #10201c;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  button.secondary {
+    background: transparent;
+    border: 1px solid #3a3a3a;
+    color: var(--text);
+  }
+  #warnings {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--warn);
+    white-space: pre-line;
+  }
+  #status { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LRC Builder</h1>
+  <div class="sub">Paste timed lyric lines, fill in your track info, get a clean .lrc ready to upload.</div>
+
+  <div class="row">
+    <div>
+      <label>Song title</label>
+      <input id="title" placeholder="Same Old Love Song" />
+    </div>
+    <div>
+      <label>Artist</label>
+      <input id="artist" placeholder="Artist name" />
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <label>Album (optional)</label>
+      <input id="album" placeholder="" />
+    </div>
+    <div>
+      <label>Lyricist / writer (optional)</label>
+      <input id="writer" placeholder="" />
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Paste your timed lyrics</label>
+    <textarea id="input" placeholder="[00:00.14] first line
+[00:06.88] second line
+..."></textarea>
+  </div>
+
+  <div class="actions">
+    <button id="convert">Convert to LRC</button>
+    <button class="secondary" id="download" disabled>Download .lrc</button>
+    <button class="secondary" id="copy" disabled>Copy</button>
+  </div>
+
+  <div id="warnings"></div>
+  <div id="status"></div>
+
+  <div class="section">
+    <label>Output preview</label>
+    <textarea id="output" readonly placeholder="Your generated LRC will show up here"></textarea>
+    <div class="hint">Long-line and spacing checks follow DistroKid's own formatting guidance (short lines, breaks every ~10 lines) — these are just warnings, nothing is auto-edited for you.</div>
+  </div>
+</div>
+
+<script>
+const inputEl = document.getElementById('input');
+const outputEl = document.getElementById('output');
+const warningsEl = document.getElementById('warnings');
+const statusEl = document.getElementById('status');
+const downloadBtn = document.getElementById('download');
+const copyBtn = document.getElementById('copy');
+
+function parseLines(raw) {
+  // Split on literal \n if pasted as escaped text, and on real newlines.
+  const normalized = raw.replace(/\\n/g, '\n');
+  const rawLines = normalized.split('\n').map(l => l.trim()).filter(l => l.length);
+
+  const lines = [];
+  const lineRe = /^\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]\s*(.*)$/;
+
+  for (const line of rawLines) {
+    const m = line.match(lineRe);
+    if (!m) {
+      lines.push({ raw: line, time: null, text: line, malformed: true });
+      continue;
+    }
+    const min = parseInt(m[1], 10);
+    const sec = parseInt(m[2], 10);
+    let frac = m[3] || '0';
+    frac = frac.padEnd(2, '0').slice(0, 2); // normalize to 2 decimal digits (LRC standard)
+    lines.push({
+      time: `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${frac}`,
+      text: m[4],
+      malformed: false
+    });
+  }
+  return lines;
+}
+
+function buildLrc(lines, meta) {
+  const out = [];
+  if (meta.title) out.push(`[ti:${meta.title}]`);
+  if (meta.artist) out.push(`[ar:${meta.artist}]`);
+  if (meta.album) out.push(`[al:${meta.album}]`);
+  if (meta.writer) out.push(`[au:${meta.writer}]`);
+  out.push(`[offset:0]`);
+  out.push('');
+  for (const l of lines) {
+    if (l.malformed) {
+      out.push(l.text); // pass through unrecognized lines as-is
+    } else {
+      out.push(`[${l.time}]${l.text}`);
+    }
+  }
+  return out.join('\n');
+}
+
+function checkWarnings(lines) {
+  const warnings = [];
+  const malformed = lines.filter(l => l.malformed);
+  if (malformed.length) {
+    warnings.push(`${malformed.length} line(s) didn't match the [mm:ss.xx] format and were kept as-is — double check these:`);
+    malformed.slice(0, 5).forEach(l => warnings.push(`  • ${l.text}`));
+  }
+
+  let consecutiveNoBreak = 0;
+  let longLineCount = 0;
+  for (const l of lines) {
+    if (l.malformed) { consecutiveNoBreak = 0; continue; }
+    if (!l.text.trim()) {
+      consecutiveNoBreak = 0;
+      continue;
+    }
+    consecutiveNoBreak++;
+    const wordCount = l.text.trim().split(/\s+/).length;
+    if (wordCount > 6) longLineCount++;
+  }
+  if (longLineCount) {
+    warnings.push(`${longLineCount} line(s) are longer than ~6 words — DistroKid recommends keeping lines short so services don't reject them.`);
+  }
+
+  // rough check: total lines without any blank separator
+  const hasBlankLines = lines.some(l => !l.malformed && l.text.trim() === '');
+  const nonEmptyCount = lines.filter(l => !l.malformed && l.text.trim() !== '').length;
+  if (!hasBlankLines && nonEmptyCount > 10) {
+    warnings.push(`No blank-line breaks detected between sections — DistroKid suggests not exceeding ~10 lines without a break (verse/chorus split).`);
+  }
+
+  return warnings;
+}
+
+let currentLrc = '';
+let currentFilename = 'lyrics.lrc';
+
+document.getElementById('convert').addEventListener('click', () => {
+  const raw = inputEl.value;
+  if (!raw.trim()) {
+    statusEl.textContent = 'Paste your timed lyrics first.';
+    return;
+  }
+  const meta = {
+    title: document.getElementById('title').value.trim(),
+    artist: document.getElementById('artist').value.trim(),
+    album: document.getElementById('album').value.trim(),
+    writer: document.getElementById('writer').value.trim(),
+  };
+
+  const lines = parseLines(raw);
+  const lrc = buildLrc(lines, meta);
+  const warnings = checkWarnings(lines);
+
+  outputEl.value = lrc;
+  currentLrc = lrc;
+  currentFilename = `${meta.artist ? meta.artist + ' - ' : ''}${meta.title || 'lyrics'}.lrc`.replace(/[\\/:*?"<>|]/g, '');
+
+  warningsEl.textContent = warnings.length ? '⚠ ' + warnings.join('\n') : '';
+  statusEl.textContent = `Converted ${lines.filter(l => !l.malformed).length} timed lines.`;
+  downloadBtn.disabled = false;
+  copyBtn.disabled = false;
+});
+
+downloadBtn.addEventListener('click', () => {
+  if (!currentLrc) return;
+  const blob = new Blob([currentLrc], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = currentFilename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+copyBtn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(currentLrc);
+    statusEl.textContent = 'Copied to clipboard.';
+  } catch (e) {
+    statusEl.textContent = 'Could not copy — select the text manually.';
+  }
+});
+</script>
+</body>
+</html>

@@ -66,6 +66,7 @@
     border: 1px solid #3a3a3a;
     color: var(--text);
   }
+  button:disabled { opacity: 0.4; cursor: default; }
   #warnings {
     margin-top: 10px;
     font-size: 12px;
@@ -74,12 +75,24 @@
   }
   #status { margin-top: 10px; font-size: 12px; color: var(--muted); }
   .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  #formatBadge {
+    display: inline-block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid #3a3a3a;
+    color: var(--muted);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>LRC Builder</h1>
-  <div class="sub">Paste timed lyric lines, fill in your track info, get a clean .lrc ready to upload.</div>
+  <div class="sub">Paste timed lyrics ([mm:ss.xx] lines) or an Apple Music TTML export — it auto-detects which one you pasted.</div>
 
   <div class="row">
     <div>
@@ -103,15 +116,19 @@
   </div>
 
   <div class="section">
-    <label>Paste your timed lyrics</label>
+    <label>Paste your lyrics <span id="formatBadge">waiting for input</span></label>
     <textarea id="input" placeholder="[00:00.14] first line
 [00:06.88] second line
-..."></textarea>
+...
+
+— or —
+
+&lt;tt xmlns=&quot;http://www.w3.org/ns/ttml&quot;...&gt;...&lt;/tt&gt;"></textarea>
   </div>
 
   <div class="actions">
-    <button id="convert">Convert to LRC</button>
-    <button class="secondary" id="download" disabled>Download .lrc</button>
+    <button id="convert">Convert</button>
+    <button class="secondary" id="download" disabled>Download</button>
     <button class="secondary" id="copy" disabled>Copy</button>
   </div>
 
@@ -120,8 +137,8 @@
 
   <div class="section">
     <label>Output preview</label>
-    <textarea id="output" readonly placeholder="Your generated LRC will show up here"></textarea>
-    <div class="hint">Long-line and spacing checks follow DistroKid's own formatting guidance (short lines, breaks every ~10 lines) — these are just warnings, nothing is auto-edited for you.</div>
+    <textarea id="output" readonly placeholder="Your generated lyrics file will show up here"></textarea>
+    <div class="hint">Timed input → .lrc with [ti:]/[ar:]/[al:] tags. Untimed TTML → plain-text lyrics (.txt) with a blank line between each &lt;div&gt; section, matching DistroKid's plain-lyrics formatting. Long-line / section-break warnings follow DistroKid's own guidance — nothing is auto-edited for you.</div>
   </div>
 </div>
 
@@ -132,12 +149,54 @@ const warningsEl = document.getElementById('warnings');
 const statusEl = document.getElementById('status');
 const downloadBtn = document.getElementById('download');
 const copyBtn = document.getElementById('copy');
+const formatBadge = document.getElementById('formatBadge');
 
-function parseLines(raw) {
-  // Split on literal \n if pasted as escaped text, and on real newlines.
+// ---------- shared helpers ----------
+
+function unescapeJsonish(raw) {
+  let text = raw.trim();
+  // Strip a leading `"ttml": ` / `'ttml' :` style JSON key prefix, if pasted with it
+  text = text.replace(/^["']?ttml["']?\s*:\s*/i, '');
+  // Strip one layer of surrounding quotes
+  if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+    text = text.slice(1, -1);
+  }
+  // Unescape common JSON escapes
+  text = text.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\');
+  return text;
+}
+
+function detectFormat(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed) return 'empty';
+  const unescaped = unescapeJsonish(trimmed);
+  if (/<tt[\s>]/i.test(unescaped)) return 'ttml';
+  if (/\[\d{1,2}:\d{2}(\.\d+)?\]/.test(trimmed)) return 'lrc';
+  return 'unknown';
+}
+
+function msToLrcTimestamp(ms) {
+  const totalSec = ms / 1000;
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec - min * 60;
+  return `[${String(min).padStart(2, '0')}:${sec.toFixed(2).padStart(5, '0')}]`;
+}
+
+function buildMetaHeader(meta) {
+  const out = [];
+  if (meta.title) out.push(`[ti:${meta.title}]`);
+  if (meta.artist) out.push(`[ar:${meta.artist}]`);
+  if (meta.album) out.push(`[al:${meta.album}]`);
+  if (meta.writer) out.push(`[au:${meta.writer}]`);
+  out.push(`[offset:0]`);
+  return out;
+}
+
+// ---------- LRC (already-timed text) parsing ----------
+
+function parseLrcInput(raw) {
   const normalized = raw.replace(/\\n/g, '\n');
   const rawLines = normalized.split('\n').map(l => l.trim()).filter(l => l.length);
-
   const lines = [];
   const lineRe = /^\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]\s*(.*)$/;
 
@@ -150,7 +209,7 @@ function parseLines(raw) {
     const min = parseInt(m[1], 10);
     const sec = parseInt(m[2], 10);
     let frac = m[3] || '0';
-    frac = frac.padEnd(2, '0').slice(0, 2); // normalize to 2 decimal digits (LRC standard)
+    frac = frac.padEnd(2, '0').slice(0, 2);
     lines.push({
       time: `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${frac}`,
       text: m[4],
@@ -160,67 +219,132 @@ function parseLines(raw) {
   return lines;
 }
 
-function buildLrc(lines, meta) {
-  const out = [];
-  if (meta.title) out.push(`[ti:${meta.title}]`);
-  if (meta.artist) out.push(`[ar:${meta.artist}]`);
-  if (meta.album) out.push(`[al:${meta.album}]`);
-  if (meta.writer) out.push(`[au:${meta.writer}]`);
-  out.push(`[offset:0]`);
+function buildLrcFromTimed(lines, meta) {
+  const out = buildMetaHeader(meta);
   out.push('');
   for (const l of lines) {
-    if (l.malformed) {
-      out.push(l.text); // pass through unrecognized lines as-is
-    } else {
-      out.push(`[${l.time}]${l.text}`);
-    }
+    out.push(l.malformed ? l.text : `[${l.time}]${l.text}`);
   }
   return out.join('\n');
 }
 
-function checkWarnings(lines) {
+// ---------- TTML parsing ----------
+
+function parseTimecode(tc) {
+  if (!tc) return null;
+  tc = tc.trim();
+  if (/^[\d.]+s$/i.test(tc)) return Math.round(parseFloat(tc) * 1000);
+  if (/^[\d.]+t$/i.test(tc)) return null; // tick-based, not supported
+  const parts = tc.split(':');
+  if (parts.length === 3) {
+    const [h, m, s] = parts;
+    return Math.round((parseInt(h, 10) * 3600 + parseInt(m, 10) * 60 + parseFloat(s)) * 1000);
+  }
+  if (parts.length === 2) {
+    const [m, s] = parts;
+    return Math.round((parseInt(m, 10) * 60 + parseFloat(s)) * 1000);
+  }
+  if (/^[\d.]+$/.test(tc)) return Math.round(parseFloat(tc) * 1000);
+  return null;
+}
+
+function parseTtmlInput(raw) {
+  const xmlText = unescapeJsonish(raw);
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length) {
+    throw new Error('Could not parse that as TTML/XML — check for missing tags or broken escaping.');
+  }
+
+  const divs = Array.from(doc.getElementsByTagName('div'));
+  const divList = divs.length ? divs : [doc]; // fallback: treat whole doc as one section
+
+  let anyTiming = false;
+  const sections = [];
+
+  for (const div of divList) {
+    const ps = Array.from(div.getElementsByTagName('p'));
+    const sectionLines = [];
+    for (const p of ps) {
+      const text = p.textContent.replace(/\s+/g, ' ').trim();
+      if (!text) continue;
+      const begin = p.getAttribute('begin');
+      const ms = begin ? parseTimecode(begin) : null;
+      if (ms !== null) anyTiming = true;
+      sectionLines.push({ text, ms });
+    }
+    if (sectionLines.length) sections.push(sectionLines);
+  }
+
+  return { sections, timed: anyTiming };
+}
+
+function buildFromTtml(parsed, meta) {
+  if (parsed.timed) {
+    const out = buildMetaHeader(meta);
+    out.push('');
+    for (const section of parsed.sections) {
+      for (const line of section) {
+        out.push(line.ms !== null ? `${msToLrcTimestamp(line.ms)}${line.text}` : line.text);
+      }
+      out.push(''); // blank line between divs/sections
+    }
+    // trim trailing blank line
+    while (out.length && out[out.length - 1] === '') out.pop();
+    return { text: out.join('\n'), ext: 'lrc' };
+  } else {
+    const out = [];
+    for (const section of parsed.sections) {
+      out.push(section.map(l => l.text).join('\n'));
+    }
+    return { text: out.join('\n\n'), ext: 'txt' };
+  }
+}
+
+// ---------- warnings (DistroKid formatting guidance) ----------
+
+function checkWarnings(flatLines) {
   const warnings = [];
-  const malformed = lines.filter(l => l.malformed);
+  const malformed = flatLines.filter(l => l.malformed);
   if (malformed.length) {
-    warnings.push(`${malformed.length} line(s) didn't match the [mm:ss.xx] format and were kept as-is — double check these:`);
+    warnings.push(`${malformed.length} line(s) didn't match the expected format and were kept as-is — double check these:`);
     malformed.slice(0, 5).forEach(l => warnings.push(`  • ${l.text}`));
   }
 
-  let consecutiveNoBreak = 0;
   let longLineCount = 0;
-  for (const l of lines) {
-    if (l.malformed) { consecutiveNoBreak = 0; continue; }
-    if (!l.text.trim()) {
-      consecutiveNoBreak = 0;
-      continue;
-    }
-    consecutiveNoBreak++;
-    const wordCount = l.text.trim().split(/\s+/).length;
-    if (wordCount > 6) longLineCount++;
+  let consecutive = 0;
+  let sawBreak = false;
+  for (const l of flatLines) {
+    const t = (l.text || '').trim();
+    if (!t) { sawBreak = true; consecutive = 0; continue; }
+    consecutive++;
+    const wc = t.split(/\s+/).length;
+    if (wc > 6) longLineCount++;
   }
   if (longLineCount) {
     warnings.push(`${longLineCount} line(s) are longer than ~6 words — DistroKid recommends keeping lines short so services don't reject them.`);
   }
-
-  // rough check: total lines without any blank separator
-  const hasBlankLines = lines.some(l => !l.malformed && l.text.trim() === '');
-  const nonEmptyCount = lines.filter(l => !l.malformed && l.text.trim() !== '').length;
-  if (!hasBlankLines && nonEmptyCount > 10) {
+  const nonEmpty = flatLines.filter(l => (l.text || '').trim() !== '').length;
+  if (!sawBreak && nonEmpty > 10) {
     warnings.push(`No blank-line breaks detected between sections — DistroKid suggests not exceeding ~10 lines without a break (verse/chorus split).`);
   }
-
   return warnings;
 }
 
-let currentLrc = '';
-let currentFilename = 'lyrics.lrc';
+// ---------- UI wiring ----------
+
+let currentOutput = '';
+let currentExt = 'lrc';
+
+inputEl.addEventListener('input', () => {
+  const fmt = detectFormat(inputEl.value);
+  const labels = { empty: 'waiting for input', ttml: 'TTML detected', lrc: 'timed lyrics detected', unknown: 'format not recognized' };
+  formatBadge.textContent = labels[fmt];
+});
 
 document.getElementById('convert').addEventListener('click', () => {
   const raw = inputEl.value;
-  if (!raw.trim()) {
-    statusEl.textContent = 'Paste your timed lyrics first.';
-    return;
-  }
+  const fmt = detectFormat(raw);
   const meta = {
     title: document.getElementById('title').value.trim(),
     artist: document.getElementById('artist').value.trim(),
@@ -228,27 +352,61 @@ document.getElementById('convert').addEventListener('click', () => {
     writer: document.getElementById('writer').value.trim(),
   };
 
-  const lines = parseLines(raw);
-  const lrc = buildLrc(lines, meta);
-  const warnings = checkWarnings(lines);
+  warningsEl.textContent = '';
+  statusEl.textContent = '';
 
-  outputEl.value = lrc;
-  currentLrc = lrc;
-  currentFilename = `${meta.artist ? meta.artist + ' - ' : ''}${meta.title || 'lyrics'}.lrc`.replace(/[\\/:*?"<>|]/g, '');
+  if (fmt === 'empty') {
+    statusEl.textContent = 'Paste your lyrics first.';
+    return;
+  }
+  if (fmt === 'unknown') {
+    statusEl.textContent = "Couldn't tell if that's timed lyrics or TTML — check the formatting.";
+    return;
+  }
 
-  warningsEl.textContent = warnings.length ? '⚠ ' + warnings.join('\n') : '';
-  statusEl.textContent = `Converted ${lines.filter(l => !l.malformed).length} timed lines.`;
+  try {
+    if (fmt === 'lrc') {
+      const lines = parseLrcInput(raw);
+      currentOutput = buildLrcFromTimed(lines, meta);
+      currentExt = 'lrc';
+      const warnings = checkWarnings(lines);
+      if (warnings.length) warningsEl.textContent = '⚠ ' + warnings.join('\n');
+      statusEl.textContent = `Converted ${lines.filter(l => !l.malformed).length} timed lines.`;
+    } else {
+      const parsed = parseTtmlInput(raw);
+      const result = buildFromTtml(parsed, meta);
+      currentOutput = result.text;
+      currentExt = result.ext;
+      const flat = parsed.sections.flat();
+      const warnings = checkWarnings(flat);
+      if (warnings.length) warningsEl.textContent = '⚠ ' + warnings.join('\n');
+      statusEl.textContent = parsed.timed
+        ? `Converted ${flat.length} timed lines across ${parsed.sections.length} section(s).`
+        : `Extracted ${flat.length} lines across ${parsed.sections.length} section(s) (no timing found — plain lyrics output).`;
+    }
+  } catch (e) {
+    statusEl.textContent = e.message || 'Something went wrong parsing that input.';
+    return;
+  }
+
+  outputEl.value = currentOutput;
   downloadBtn.disabled = false;
   copyBtn.disabled = false;
+  downloadBtn.textContent = `Download .${currentExt}`;
 });
 
 downloadBtn.addEventListener('click', () => {
-  if (!currentLrc) return;
-  const blob = new Blob([currentLrc], { type: 'text/plain;charset=utf-8' });
+  if (!currentOutput) return;
+  const meta = {
+    title: document.getElementById('title').value.trim(),
+    artist: document.getElementById('artist').value.trim(),
+  };
+  const filename = `${meta.artist ? meta.artist + ' - ' : ''}${meta.title || 'lyrics'}.${currentExt}`.replace(/[\\/:*?"<>|]/g, '');
+  const blob = new Blob([currentOutput], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = currentFilename;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -257,7 +415,7 @@ downloadBtn.addEventListener('click', () => {
 
 copyBtn.addEventListener('click', async () => {
   try {
-    await navigator.clipboard.writeText(currentLrc);
+    await navigator.clipboard.writeText(currentOutput);
     statusEl.textContent = 'Copied to clipboard.';
   } catch (e) {
     statusEl.textContent = 'Could not copy — select the text manually.';

@@ -1,167 +1,421 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>LRC Builder</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Lyrics Studio</title>
 <style>
   :root {
-    --bg: #121212;
-    --panel: #1a1a1a;
-    --accent: #7c9a92;
-    --text: #f2f2f2;
-    --muted: #9a9a9a;
-    --warn: #d9a441;
+    --bg: #14151a;
+    --panel: #1b1d23;
+    --panel-2: #21232a;
+    --border: #2a2c34;
+    --text: #e8e9ed;
+    --muted: #888c98;
+    --accent: #7fa8e0;
+    --accent-text: #0e1420;
+    --warn: #d9a85c;
+    --danger: #d9736f;
+    --danger-bg: #2e2224;
+    --ok: #6bbf94;
+    --mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --radius: 12px;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
+    margin: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: 'DM Mono', 'Segoe UI', monospace;
-    margin: 0;
-    padding: 24px 16px 60px;
-    display: flex;
-    justify-content: center;
+    font-family: var(--sans);
+    min-height: 100dvh;
+    padding: 24px;
+    padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
   }
-  .wrap { width: 100%; max-width: 720px; }
-  h1 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 22px;
-    margin: 0 0 4px;
-    letter-spacing: 0.5px;
+  .wrap { max-width: 1100px; margin: 0 auto; }
+
+  header { margin-bottom: 16px; }
+  h1 { font-size: 19px; font-weight: 700; margin: 0 0 3px; letter-spacing: 0.2px; }
+  .sub { font-size: 12.5px; color: var(--muted); }
+
+  /* segmented control (raw vs musixmatch) */
+  .segmented {
+    display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px; margin-bottom: 12px;
   }
-  .sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
-  .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-  .row > div { flex: 1; min-width: 140px; }
-  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-  input, textarea {
-    width: 100%;
+  .seg {
+    flex: 1; background: transparent; border: none; color: var(--muted);
+    padding: 9px 10px; border-radius: 7px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans);
+  }
+  .seg.active { background: var(--accent); color: var(--accent-text); }
+
+  /* meta bar - only shown in musixmatch mode */
+  .meta-bar {
     background: var(--panel);
-    border: 1px solid #2c2c2c;
-    color: var(--text);
-    padding: 9px 10px;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 12px;
+    display: none;
   }
-  textarea { resize: vertical; }
-  #input { height: 220px; }
-  #output { height: 220px; }
-  .section { margin-top: 22px; }
-  .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
-  button {
-    background: var(--accent);
-    color: #10201c;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 13px;
+  .meta-bar.visible { display: block; }
+  .meta-row { display: flex; gap: 10px; }
+  .meta-row + .meta-row { margin-top: 8px; }
+  .meta-field { flex: 1; min-width: 0; }
+  .meta-field label {
+    display: block; font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
   }
-  button.secondary {
-    background: transparent;
-    border: 1px solid #3a3a3a;
-    color: var(--text);
+  .meta-field input {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; border-radius: 8px;
+    font-family: var(--sans); font-size: 13px;
   }
-  button:disabled { opacity: 0.4; cursor: default; }
-  #warnings {
-    margin-top: 10px;
+  .meta-field input:focus { outline: none; border-color: var(--accent); }
+  .meta-toggle {
+    background: none; border: none; color: var(--muted); font-size: 11px;
+    cursor: pointer; padding: 6px 2px 0; text-decoration: underline;
+  }
+  .meta-more { display: none; }
+  .meta-more.open { display: flex; }
+
+  /* toolbar row: badge + more options */
+  .toolbar-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; gap: 8px; flex-wrap: wrap;
+  }
+  .badge-row { display: none; }
+  .badge-row.visible { display: block; }
+  .badge {
+    display: inline-block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 4px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted);
+    background: var(--panel);
+  }
+  .badge.ok { color: var(--ok); border-color: var(--ok); }
+  .badge.warn { color: var(--warn); border-color: var(--warn); }
+
+  button.btn {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans);
+  }
+  button.btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  button.btn.ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+  button.btn:active { transform: translateY(1px); }
+  button.btn.copied { background: var(--ok); color: #0e1420; border-color: var(--ok); }
+
+  /* more options dropdown */
+  .more-options-panel {
+    display: none;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .more-options-panel.open { display: block; }
+  .option-group { margin-bottom: 14px; }
+  .option-group:last-child { margin-bottom: 0; }
+  .option-group > label.section-label {
+    display: block; font-size: 10.5px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+  }
+  .checkbox-row {
+    display: flex; align-items: center; gap: 8px; font-size: 13px;
+    padding: 5px 0; cursor: pointer; color: var(--text);
+  }
+  .checkbox-row input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+  .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  .replace-tool .replace-row { display: flex; gap: 8px; margin-top: 6px; }
+  .replace-tool input {
+    flex: 1; min-width: 0; background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; border-radius: 8px;
+    font-family: var(--sans); font-size: 13px;
+  }
+  .replace-tool input:focus { outline: none; border-color: var(--accent); }
+  .replace-hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* main grid */
+  .editor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
     font-size: 12px;
-    color: var(--warn);
-    white-space: pre-line;
-  }
-  #status { margin-top: 10px; font-size: 12px; color: var(--muted); }
-  .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
-  #formatBadge {
-    display: inline-block;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 3px 8px;
-    border-radius: 999px;
-    border: 1px solid #3a3a3a;
     color: var(--muted);
-    margin-left: 8px;
-    vertical-align: middle;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-row { display: flex; gap: 8px; }
+
+  .mode-box { display: none; flex: 1; }
+  .mode-box.active { display: flex; flex-direction: column; flex: 1; }
+
+  textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 14px;
+    resize: none;
+    outline: none;
+    flex: 1;
+    min-height: 40vh;
+  }
+
+  .notice { font-size: 12px; color: var(--warn); margin: 0 14px 12px; white-space: pre-line; }
+
+  .editor-wrap { position: relative; flex: 1; min-height: 40vh; }
+  .editor-wrap textarea, .editor-wrap .backdrop {
+    position: absolute; inset: 0; margin: 0; min-height: 0; height: 100%;
+    overflow: auto;
+  }
+  .backdrop {
+    pointer-events: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: transparent;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .bd-line {
+    color: transparent;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  .bd-line.over {
+    background: var(--danger-bg);
+    border-left: 2px solid var(--danger);
+    padding-left: 4px;
+    margin-left: -6px;
+  }
+  .editor-wrap textarea {
+    background: transparent;
+    color: var(--text);
+    caret-color: var(--text);
+    z-index: 1;
+  }
+
+  .warnings { margin: 0 14px 12px; font-size: 12px; color: var(--warn); white-space: pre-line; }
+
+  .legend {
+    margin-top: 14px; font-size: 11.5px; color: var(--muted);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .legend .dot { width: 8px; height: 8px; border-radius: 2px; background: var(--danger); display: inline-block; }
+
+  @media (max-width: 760px) {
+    body { padding: 14px; }
+    h1 { font-size: 17px; }
+    .editor-grid { grid-template-columns: 1fr; gap: 12px; }
+    .meta-row { flex-direction: column; gap: 8px; }
+    textarea, .backdrop { font-size: 16px; padding: 12px; }
+    textarea { min-height: 30vh; }
+    .editor-wrap { min-height: 30vh; }
+    .panel-header { flex-direction: column; align-items: stretch; }
+    .btn-row { justify-content: stretch; }
+    button.btn { flex: 1; min-height: 38px; }
+    .replace-tool .replace-row { flex-direction: column; }
+    .toolbar-row { flex-direction: column; align-items: stretch; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>LRC Builder</h1>
-  <div class="sub">Paste timed lyrics ([mm:ss.xx] lines) or an Apple Music TTML export — it auto-detects which one you pasted.</div>
+  <header>
+    <h1>Lyrics Studio</h1>
+    <div class="sub">Format raw lyrics or convert Musixmatch/TTML — edit the result directly, live.</div>
+  </header>
 
-  <div class="row">
-    <div>
-      <label>Song title</label>
-      <input id="title" placeholder="Same Old Love Song" />
+  <div class="segmented">
+    <button class="seg active" data-mode="raw">Raw Lyrics</button>
+    <button class="seg" data-mode="musix">Musixmatch / TTML</button>
+  </div>
+
+  <div class="meta-bar" id="metaBar">
+    <div class="meta-row">
+      <div class="meta-field"><label>Title</label><input id="title" placeholder="Song title"></div>
+      <div class="meta-field"><label>Artist</label><input id="artist" placeholder="Artist name"></div>
     </div>
-    <div>
-      <label>Artist</label>
-      <input id="artist" placeholder="Artist name" />
+    <div class="meta-row meta-more" id="metaMore">
+      <div class="meta-field"><label>Album</label><input id="album" placeholder="Optional"></div>
+      <div class="meta-field"><label>Writer</label><input id="writer" placeholder="Optional"></div>
+    </div>
+    <button class="meta-toggle" id="metaToggle">+ album / writer</button>
+  </div>
+
+  <div class="toolbar-row">
+    <div class="badge-row" id="badgeRow"><span class="badge" id="formatBadge">waiting for input</span></div>
+    <button class="btn ghost" id="moreOptionsBtn">⋯ More options</button>
+  </div>
+
+  <div class="more-options-panel" id="moreOptionsPanel">
+    <div class="option-group">
+      <label class="section-label">Automatic fixes</label>
+      <label class="checkbox-row"><input type="checkbox" id="toggleCap" checked> Capitalize line starts &amp; standalone "I"</label>
+      <label class="checkbox-row"><input type="checkbox" id="toggleApos" checked> Fix clipped-word apostrophes (em → 'em, goin → goin')</label>
+      <label class="checkbox-row"><input type="checkbox" id="toggleComma" checked> Fix spacing around commas</label>
+    </div>
+    <div class="option-group">
+      <label class="section-label">Quick tools (apply once to Result)</label>
+      <div class="action-buttons">
+        <button class="btn ghost" id="collapseBlanksBtn">Collapse extra blank lines</button>
+        <button class="btn ghost" id="trimSpacesBtn">Trim trailing spaces</button>
+      </div>
+    </div>
+    <div class="option-group replace-tool">
+      <label class="section-label">Find &amp; replace (applies to Result)</label>
+      <div class="replace-row">
+        <input type="text" id="findInput" placeholder="Find..." value="****">
+        <input type="text" id="replaceInput" placeholder="Replace with...">
+        <button class="btn primary" id="replaceAllBtn">Replace All</button>
+      </div>
+      <div class="replace-hint">Defaults to finding **** (handy for filling in Musixmatch's censored words) — leave "replace with" blank to just remove matches.</div>
     </div>
   </div>
-  <div class="row">
-    <div>
-      <label>Album (optional)</label>
-      <input id="album" placeholder="" />
+
+  <div class="editor-grid">
+    <div class="panel">
+      <div class="panel-header"><span id="inputLabel">Raw Lyrics</span></div>
+
+      <div class="mode-box active" id="rawModeBox">
+        <textarea id="rawInput" placeholder="Paste plain lyrics here..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="mode-box" id="musixModeBox">
+        <textarea id="musixInput" placeholder="Paste [mm:ss.xx] timed lyrics, or a TTML export..." spellcheck="false"></textarea>
+        <div class="notice" id="parseNotice"></div>
+      </div>
     </div>
-    <div>
-      <label>Lyricist / writer (optional)</label>
-      <input id="writer" placeholder="" />
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="stats" id="resultStats">0 lines</div>
+        <div class="btn-row">
+          <button class="btn ghost" id="regenBtn" title="Re-generate from Input, discarding manual edits">↻</button>
+          <button class="btn" id="copyBtn">Copy</button>
+          <button class="btn primary" id="downloadBtn">Download .txt</button>
+        </div>
+      </div>
+      <div class="editor-wrap">
+        <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+        <textarea id="resultBox" placeholder="Your formatted lyrics will show up here — edit freely." spellcheck="false"></textarea>
+      </div>
+      <div class="warnings" id="warnings"></div>
     </div>
   </div>
 
-  <div class="section">
-    <label>Paste your lyrics <span id="formatBadge">waiting for input</span></label>
-    <textarea id="input" placeholder="[00:00.14] first line
-[00:06.88] second line
-...
-
-— or —
-
-&lt;tt xmlns=&quot;http://www.w3.org/ns/ttml&quot;...&gt;...&lt;/tt&gt;"></textarea>
-  </div>
-
-  <div class="actions">
-    <button id="convert">Convert</button>
-    <button class="secondary" id="download" disabled>Download</button>
-    <button class="secondary" id="copy" disabled>Copy</button>
-  </div>
-
-  <div id="warnings"></div>
-  <div id="status"></div>
-
-  <div class="section">
-    <label>Output preview</label>
-    <textarea id="output" readonly placeholder="Your generated lyrics file will show up here"></textarea>
-    <div class="hint">Timed input → .lrc with [ti:]/[ar:]/[al:] tags. Untimed TTML → plain-text lyrics (.txt) with a blank line between each &lt;div&gt; section, matching DistroKid's plain-lyrics formatting. Long-line / section-break warnings follow DistroKid's own guidance — nothing is auto-edited for you.</div>
-  </div>
+  <div class="legend"><span class="dot"></span>Line over 70 characters</div>
 </div>
 
 <script>
-const inputEl = document.getElementById('input');
-const outputEl = document.getElementById('output');
-const warningsEl = document.getElementById('warnings');
-const statusEl = document.getElementById('status');
-const downloadBtn = document.getElementById('download');
-const copyBtn = document.getElementById('copy');
-const formatBadge = document.getElementById('formatBadge');
+/* ================= shared text-formatting engine ================= */
+const CHAR_LIMIT = 70;
 
-// ---------- shared helpers ----------
+const FRONT_CLIPPED = new Set([
+  'em','cause','cuz','cus','cos','coz','bout','round','cept','nuff',
+  'gainst','fraid','tis','twas','kay','fore','neath','specially','sup'
+]);
+
+const BACK_CLIPPED = new Set([
+  'nothin','somethin','anythin','everythin','goin','doin','comin','runnin',
+  'walkin','talkin','thinkin','feelin','tryin','playin','singin','dancin',
+  'lookin','waitin','cryin','flyin','dyin','livin','lovin','hopin','wishin',
+  'prayin','sayin','makin','takin','breakin','wakin','shakin','holdin',
+  'standin','fallin','callin','tellin','gettin','lettin','puttin','keepin',
+  'movin','growin','knowin','showin','bein','seein','workin','drivin',
+  'chasin','wonderin','smilin','cheatin','leavin','dreamin','screamin',
+  'missin','kissin','huggin','fightin','watchin','jumpin','rockin','rollin',
+  'shinin','burnin','turnin','learnin','teachin','readin','writin',
+  'sleepin','swingin','bringin','findin','askin','beggin','tradin',
+  'hidin','ridin','shootin','fillin','sendin','spendin','endin','startin',
+  'stoppin','openin','closin','changin','chillin','trippin','slippin'
+]);
+
+const REAL_IN_WORDS = new Set([
+  'in','pin','win','bin','fin','gin','kin','sin','tin','din','min','chin',
+  'shin','thin','twin','skin','coin','ruin','cabin','robin','satin','basin',
+  'muffin','puffin','cousin','virgin','margin','origin','protein','vitamin',
+  'javelin','dolphin','penguin','pumpkin','napkin','latin','akin','ain'
+]);
+
+// tokenizer includes both straight (') and curly (’) apostrophes so words that
+// ALREADY have an apostrophe (typed or pasted with a curly quote) are captured
+// whole and never touched again — this is what fixes the double-apostrophe bug.
+const WORD_RE = /[A-Za-z'’]+/g;
+
+function processWordApostrophe(word) {
+  if (word.includes("'") || word.includes('\u2019')) return word; // already has one, leave it alone
+  const lower = word.toLowerCase();
+  if (FRONT_CLIPPED.has(lower)) return "'" + word;
+  if (BACK_CLIPPED.has(lower)) return word + "'";
+  if (lower.length > 4 && lower.endsWith('in') && !REAL_IN_WORDS.has(lower)) return word + "'";
+  return word;
+}
+
+function capitalizeFirstLetter(line) {
+  const idx = line.search(/[a-zA-Z]/);
+  if (idx === -1) return line;
+  return line.slice(0, idx) + line[idx].toUpperCase() + line.slice(idx + 1);
+}
+
+function fixCommaSpacing(line) {
+  return line
+    .replace(/\s+,/g, ',')          // no space before a comma
+    .replace(/,(?=\S)/g, ', ')      // exactly one space after, unless end of line
+    .replace(/,\s{2,}/g, ', ');     // collapse multiple spaces after a comma
+}
+
+function processLine(rawLine, opts) {
+  opts = opts || { cap: true, apos: true, comma: true };
+  if (rawLine.trim() === '') return '';
+  let line = rawLine;
+  if (opts.comma) line = fixCommaSpacing(line);
+  if (opts.apos) line = line.replace(WORD_RE, processWordApostrophe);
+  if (opts.cap) {
+    line = line.replace(/\bi\b/g, 'I');
+    line = capitalizeFirstLetter(line);
+  }
+  return line;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/* ================= LRC / TTML engine ================= */
 
 function unescapeJsonish(raw) {
   let text = raw.trim();
-  // Strip a leading `"ttml": ` / `'ttml' :` style JSON key prefix, if pasted with it
   text = text.replace(/^["']?ttml["']?\s*:\s*/i, '');
-  // Strip one layer of surrounding quotes
   if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
     text = text.slice(1, -1);
   }
-  // Unescape common JSON escapes
   text = text.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\');
   return text;
 }
@@ -192,49 +446,38 @@ function buildMetaHeader(meta) {
   return out;
 }
 
-// ---------- LRC (already-timed text) parsing ----------
-
 function parseLrcInput(raw) {
   const normalized = raw.replace(/\\n/g, '\n');
   const rawLines = normalized.split('\n').map(l => l.trim()).filter(l => l.length);
   const lines = [];
   const lineRe = /^\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]\s*(.*)$/;
-
   for (const line of rawLines) {
     const m = line.match(lineRe);
-    if (!m) {
-      lines.push({ raw: line, time: null, text: line, malformed: true });
-      continue;
-    }
+    if (!m) { lines.push({ raw: line, time: null, text: line, malformed: true }); continue; }
     const min = parseInt(m[1], 10);
     const sec = parseInt(m[2], 10);
     let frac = m[3] || '0';
     frac = frac.padEnd(2, '0').slice(0, 2);
-    lines.push({
-      time: `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${frac}`,
-      text: m[4],
-      malformed: false
-    });
+    lines.push({ time: `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${frac}`, text: m[4], malformed: false });
   }
   return lines;
 }
 
-function buildLrcFromTimed(lines, meta) {
+function buildLrcFromTimed(lines, meta, opts) {
   const out = buildMetaHeader(meta);
   out.push('');
   for (const l of lines) {
-    out.push(l.malformed ? l.text : `[${l.time}]${l.text}`);
+    const formatted = processLine(l.text, opts);
+    out.push(l.malformed ? formatted : `[${l.time}]${formatted}`);
   }
   return out.join('\n');
 }
-
-// ---------- TTML parsing ----------
 
 function parseTimecode(tc) {
   if (!tc) return null;
   tc = tc.trim();
   if (/^[\d.]+s$/i.test(tc)) return Math.round(parseFloat(tc) * 1000);
-  if (/^[\d.]+t$/i.test(tc)) return null; // tick-based, not supported
+  if (/^[\d.]+t$/i.test(tc)) return null;
   const parts = tc.split(':');
   if (parts.length === 3) {
     const [h, m, s] = parts;
@@ -255,13 +498,10 @@ function parseTtmlInput(raw) {
   if (doc.getElementsByTagName('parsererror').length) {
     throw new Error('Could not parse that as TTML/XML — check for missing tags or broken escaping.');
   }
-
   const divs = Array.from(doc.getElementsByTagName('div'));
-  const divList = divs.length ? divs : [doc]; // fallback: treat whole doc as one section
-
+  const divList = divs.length ? divs : [doc];
   let anyTiming = false;
   const sections = [];
-
   for (const div of divList) {
     const ps = Array.from(div.getElementsByTagName('p'));
     const sectionLines = [];
@@ -275,134 +515,279 @@ function parseTtmlInput(raw) {
     }
     if (sectionLines.length) sections.push(sectionLines);
   }
-
   return { sections, timed: anyTiming };
 }
 
-function buildFromTtml(parsed, meta) {
+function buildFromTtml(parsed, meta, opts) {
   if (parsed.timed) {
     const out = buildMetaHeader(meta);
     out.push('');
     for (const section of parsed.sections) {
       for (const line of section) {
-        out.push(line.ms !== null ? `${msToLrcTimestamp(line.ms)}${line.text}` : line.text);
+        const formatted = processLine(line.text, opts);
+        out.push(line.ms !== null ? `${msToLrcTimestamp(line.ms)}${formatted}` : formatted);
       }
-      out.push(''); // blank line between divs/sections
+      out.push('');
     }
-    // trim trailing blank line
     while (out.length && out[out.length - 1] === '') out.pop();
     return { text: out.join('\n'), ext: 'lrc' };
   } else {
     const out = [];
     for (const section of parsed.sections) {
-      out.push(section.map(l => l.text).join('\n'));
+      out.push(section.map(l => processLine(l.text, opts)).join('\n'));
     }
     return { text: out.join('\n\n'), ext: 'txt' };
   }
 }
 
-// ---------- warnings (DistroKid formatting guidance) ----------
-
-function checkWarnings(flatLines) {
-  const warnings = [];
+function checkParseIssues(flatLines) {
   const malformed = flatLines.filter(l => l.malformed);
-  if (malformed.length) {
-    warnings.push(`${malformed.length} line(s) didn't match the expected format and were kept as-is — double check these:`);
-    malformed.slice(0, 5).forEach(l => warnings.push(`  • ${l.text}`));
-  }
-
-  let longLineCount = 0;
-  let consecutive = 0;
-  let sawBreak = false;
-  for (const l of flatLines) {
-    const t = (l.text || '').trim();
-    if (!t) { sawBreak = true; consecutive = 0; continue; }
-    consecutive++;
-    const wc = t.split(/\s+/).length;
-    if (wc > 6) longLineCount++;
-  }
-  if (longLineCount) {
-    warnings.push(`${longLineCount} line(s) are longer than ~6 words — DistroKid recommends keeping lines short so services don't reject them.`);
-  }
-  const nonEmpty = flatLines.filter(l => (l.text || '').trim() !== '').length;
-  if (!sawBreak && nonEmpty > 10) {
-    warnings.push(`No blank-line breaks detected between sections — DistroKid suggests not exceeding ~10 lines without a break (verse/chorus split).`);
-  }
-  return warnings;
+  if (!malformed.length) return '';
+  let msg = `${malformed.length} line(s) didn't match the expected timestamp format and were kept as plain text:\n`;
+  msg += malformed.slice(0, 5).map(l => `  • ${l.text}`).join('\n');
+  return msg;
 }
 
-// ---------- UI wiring ----------
+/* ================= Result analysis (live) ================= */
 
-let currentOutput = '';
-let currentExt = 'lrc';
+function computeResultAnalysis(text, opts) {
+  const lines = text.split('\n');
+  let overCount = 0;
+  let longWordCount = 0;
+  let consecutive = 0;
+  let sawBreak = true;
+  let noBreakWarning = false;
+  let lyricLineCount = 0;
+  let wordTotal = 0;
 
-inputEl.addEventListener('input', () => {
-  const fmt = detectFormat(inputEl.value);
-  const labels = { empty: 'waiting for input', ttml: 'TTML detected', lrc: 'timed lyrics detected', unknown: 'format not recognized' };
-  formatBadge.textContent = labels[fmt];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const isMeta = /^\[(ti|ar|al|au|offset):/i.test(trimmed);
+    if (trimmed === '') { sawBreak = true; consecutive = 0; continue; }
+    if (isMeta) continue;
+
+    lyricLineCount++;
+    consecutive++;
+    const stripped = line.replace(/^\[\d{1,2}:\d{2}(?:\.\d+)?\]\s?/, '');
+    if (stripped.length > CHAR_LIMIT) overCount++;
+    const wc = stripped.trim().split(/\s+/).filter(Boolean).length;
+    wordTotal += wc;
+    if (opts.checkWordCount && wc > 6) longWordCount++;
+    if (consecutive > 10 && !sawBreak) noBreakWarning = true;
+    sawBreak = false;
+  }
+
+  return { lyricLineCount, overCount, longWordCount, noBreakWarning, wordTotal };
+}
+
+function renderBackdrop(text) {
+  const lines = text.split('\n');
+  const html = lines.map(line => {
+    const trimmed = line.trim();
+    const isMeta = /^\[(ti|ar|al|au|offset):/i.test(trimmed);
+    const stripped = line.replace(/^\[\d{1,2}:\d{2}(?:\.\d+)?\]\s?/, '');
+    const over = !isMeta && stripped.length > CHAR_LIMIT;
+    const cls = over ? 'bd-line over' : 'bd-line';
+    const content = escapeHtml(line) || ' ';
+    return `<span class="${cls}">${content}</span>`;
+  }).join('\n');
+  backdrop.innerHTML = html;
+}
+
+/* ================= UI wiring ================= */
+
+const titleEl = document.getElementById('title');
+const artistEl = document.getElementById('artist');
+const albumEl = document.getElementById('album');
+const writerEl = document.getElementById('writer');
+const metaBar = document.getElementById('metaBar');
+const metaToggle = document.getElementById('metaToggle');
+const metaMore = document.getElementById('metaMore');
+
+const segs = document.querySelectorAll('.seg');
+const rawModeBox = document.getElementById('rawModeBox');
+const musixModeBox = document.getElementById('musixModeBox');
+const rawInput = document.getElementById('rawInput');
+const musixInput = document.getElementById('musixInput');
+const inputLabel = document.getElementById('inputLabel');
+const badgeRow = document.getElementById('badgeRow');
+const formatBadge = document.getElementById('formatBadge');
+const parseNotice = document.getElementById('parseNotice');
+
+const moreOptionsBtn = document.getElementById('moreOptionsBtn');
+const moreOptionsPanel = document.getElementById('moreOptionsPanel');
+const toggleCap = document.getElementById('toggleCap');
+const toggleApos = document.getElementById('toggleApos');
+const toggleComma = document.getElementById('toggleComma');
+const collapseBlanksBtn = document.getElementById('collapseBlanksBtn');
+const trimSpacesBtn = document.getElementById('trimSpacesBtn');
+const findInput = document.getElementById('findInput');
+const replaceInput = document.getElementById('replaceInput');
+const replaceAllBtn = document.getElementById('replaceAllBtn');
+
+const resultBox = document.getElementById('resultBox');
+const backdrop = document.getElementById('backdrop');
+const resultStats = document.getElementById('resultStats');
+const warningsEl = document.getElementById('warnings');
+const copyBtn = document.getElementById('copyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const regenBtn = document.getElementById('regenBtn');
+
+let currentInputMode = 'raw';
+let currentExt = 'txt';
+
+metaToggle.addEventListener('click', () => {
+  metaMore.classList.toggle('open');
+  metaToggle.textContent = metaMore.classList.contains('open') ? '– hide extra fields' : '+ album / writer';
 });
 
-document.getElementById('convert').addEventListener('click', () => {
-  const raw = inputEl.value;
-  const fmt = detectFormat(raw);
-  const meta = {
-    title: document.getElementById('title').value.trim(),
-    artist: document.getElementById('artist').value.trim(),
-    album: document.getElementById('album').value.trim(),
-    writer: document.getElementById('writer').value.trim(),
+moreOptionsBtn.addEventListener('click', () => {
+  moreOptionsPanel.classList.toggle('open');
+});
+
+segs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    segs.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentInputMode = btn.dataset.mode;
+
+    rawModeBox.classList.toggle('active', currentInputMode === 'raw');
+    musixModeBox.classList.toggle('active', currentInputMode === 'musix');
+    metaBar.classList.toggle('visible', currentInputMode === 'musix');
+    badgeRow.classList.toggle('visible', currentInputMode === 'musix');
+    inputLabel.textContent = currentInputMode === 'raw' ? 'Raw Lyrics' : 'Musixmatch / TTML';
+
+    generateResult(true);
+  });
+});
+
+function getMeta() {
+  return {
+    title: titleEl.value.trim(),
+    artist: artistEl.value.trim(),
+    album: albumEl.value.trim(),
+    writer: writerEl.value.trim(),
   };
+}
 
-  warningsEl.textContent = '';
-  statusEl.textContent = '';
+function getFormatOpts() {
+  return { cap: toggleCap.checked, apos: toggleApos.checked, comma: toggleComma.checked };
+}
 
-  if (fmt === 'empty') {
-    statusEl.textContent = 'Paste your lyrics first.';
-    return;
-  }
-  if (fmt === 'unknown') {
-    statusEl.textContent = "Couldn't tell if that's timed lyrics or TTML — check the formatting.";
-    return;
-  }
+function generateResult(force) {
+  if (!force && document.activeElement === resultBox) return; // don't clobber manual edits
+  const opts = getFormatOpts();
 
-  try {
-    if (fmt === 'lrc') {
-      const lines = parseLrcInput(raw);
-      currentOutput = buildLrcFromTimed(lines, meta);
-      currentExt = 'lrc';
-      const warnings = checkWarnings(lines);
-      if (warnings.length) warningsEl.textContent = '⚠ ' + warnings.join('\n');
-      statusEl.textContent = `Converted ${lines.filter(l => !l.malformed).length} timed lines.`;
-    } else {
-      const parsed = parseTtmlInput(raw);
-      const result = buildFromTtml(parsed, meta);
-      currentOutput = result.text;
-      currentExt = result.ext;
-      const flat = parsed.sections.flat();
-      const warnings = checkWarnings(flat);
-      if (warnings.length) warningsEl.textContent = '⚠ ' + warnings.join('\n');
-      statusEl.textContent = parsed.timed
-        ? `Converted ${flat.length} timed lines across ${parsed.sections.length} section(s).`
-        : `Extracted ${flat.length} lines across ${parsed.sections.length} section(s) (no timing found — plain lyrics output).`;
+  if (currentInputMode === 'raw') {
+    const rawLines = rawInput.value.split('\n');
+    resultBox.value = rawLines.map(l => processLine(l, opts)).join('\n');
+    currentExt = 'txt';
+    parseNotice.textContent = '';
+  } else {
+    const raw = musixInput.value;
+    const fmt = detectFormat(raw);
+    const labels = { empty: 'waiting for input', ttml: 'TTML detected', lrc: 'timed lyrics detected', unknown: 'format not recognized' };
+    formatBadge.textContent = labels[fmt];
+    formatBadge.className = 'badge' + (fmt === 'ttml' || fmt === 'lrc' ? ' ok' : fmt === 'unknown' ? ' warn' : '');
+
+    if (fmt === 'empty') { resultBox.value = ''; parseNotice.textContent = ''; currentExt = 'txt'; }
+    else if (fmt === 'unknown') { parseNotice.textContent = "Couldn't tell if that's timed lyrics or TTML — check the formatting."; }
+    else {
+      try {
+        const meta = getMeta();
+        if (fmt === 'lrc') {
+          const lines = parseLrcInput(raw);
+          resultBox.value = buildLrcFromTimed(lines, meta, opts);
+          currentExt = 'lrc';
+          parseNotice.textContent = checkParseIssues(lines);
+        } else {
+          const parsed = parseTtmlInput(raw);
+          const result = buildFromTtml(parsed, meta, opts);
+          resultBox.value = result.text;
+          currentExt = result.ext;
+          parseNotice.textContent = checkParseIssues(parsed.sections.flat());
+        }
+      } catch (e) {
+        parseNotice.textContent = e.message || 'Something went wrong parsing that input.';
+      }
     }
-  } catch (e) {
-    statusEl.textContent = e.message || 'Something went wrong parsing that input.';
-    return;
   }
+  updateResultView();
+}
 
-  outputEl.value = currentOutput;
-  downloadBtn.disabled = false;
-  copyBtn.disabled = false;
+function updateResultView() {
+  const text = resultBox.value;
+  renderBackdrop(text);
+  const analysis = computeResultAnalysis(text, { checkWordCount: currentExt === 'lrc' });
+
+  let statsText = `${analysis.lyricLineCount} line${analysis.lyricLineCount !== 1 ? 's' : ''} • ${analysis.wordTotal} words`;
+  if (analysis.overCount) statsText += ` • ${analysis.overCount} over ${CHAR_LIMIT} chars`;
+  resultStats.textContent = statsText;
+
+  const warnings = [];
+  if (analysis.longWordCount) warnings.push(`${analysis.longWordCount} line(s) are longer than ~6 words — DistroKid recommends short sync lines.`);
+  if (analysis.noBreakWarning) warnings.push(`No blank-line section breaks detected — DistroKid suggests not exceeding ~10 lines without a break.`);
+  warningsEl.textContent = warnings.length ? '⚠ ' + warnings.join('\n') : '';
+
   downloadBtn.textContent = `Download .${currentExt}`;
+}
+
+rawInput.addEventListener('input', () => generateResult(false));
+musixInput.addEventListener('input', () => generateResult(false));
+[titleEl, artistEl, albumEl, writerEl].forEach(el => {
+  el.addEventListener('input', () => { if (currentInputMode === 'musix') generateResult(false); });
+});
+[toggleCap, toggleApos, toggleComma].forEach(el => {
+  el.addEventListener('change', () => generateResult(true));
+});
+
+resultBox.addEventListener('input', updateResultView);
+resultBox.addEventListener('scroll', () => { backdrop.scrollTop = resultBox.scrollTop; backdrop.scrollLeft = resultBox.scrollLeft; });
+
+regenBtn.addEventListener('click', () => generateResult(true));
+
+collapseBlanksBtn.addEventListener('click', () => {
+  resultBox.value = resultBox.value.replace(/\n{3,}/g, '\n\n');
+  updateResultView();
+});
+
+trimSpacesBtn.addEventListener('click', () => {
+  resultBox.value = resultBox.value.split('\n').map(l => l.replace(/[ \t]+$/, '')).join('\n');
+  updateResultView();
+});
+
+replaceAllBtn.addEventListener('click', () => {
+  const findVal = findInput.value;
+  if (!findVal) return;
+  const replaceVal = replaceInput.value; // blank means "remove the matches"
+  const re = new RegExp(escapeRegex(findVal), 'gi');
+  resultBox.value = resultBox.value.replace(re, replaceVal);
+  updateResultView();
+});
+
+copyBtn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(resultBox.value);
+    copyBtn.textContent = 'Copied!';
+    copyBtn.classList.add('copied');
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = resultBox.value;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    copyBtn.textContent = 'Copied!';
+    copyBtn.classList.add('copied');
+  }
+  setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 1200);
 });
 
 downloadBtn.addEventListener('click', () => {
-  if (!currentOutput) return;
-  const meta = {
-    title: document.getElementById('title').value.trim(),
-    artist: document.getElementById('artist').value.trim(),
-  };
+  if (!resultBox.value) return;
+  const meta = getMeta();
   const filename = `${meta.artist ? meta.artist + ' - ' : ''}${meta.title || 'lyrics'}.${currentExt}`.replace(/[\\/:*?"<>|]/g, '');
-  const blob = new Blob([currentOutput], { type: 'text/plain;charset=utf-8' });
+  const blob = new Blob([resultBox.value], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -413,14 +798,7 @@ downloadBtn.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-copyBtn.addEventListener('click', async () => {
-  try {
-    await navigator.clipboard.writeText(currentOutput);
-    statusEl.textContent = 'Copied to clipboard.';
-  } catch (e) {
-    statusEl.textContent = 'Could not copy — select the text manually.';
-  }
-});
+updateResultView();
 </script>
 </body>
 </html>

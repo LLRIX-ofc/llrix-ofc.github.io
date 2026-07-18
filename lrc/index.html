@@ -17,10 +17,13 @@
     --warn: #d9a85c;
     --danger: #d9736f;
     --danger-bg: #2e2224;
+    --flag-bg: rgba(217, 168, 92, 0.14);
     --ok: #6bbf94;
+    --suggest: #b892f0;
     --mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
     --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --radius: 12px;
+    --toolbar-h: 52px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { -webkit-text-size-adjust: 100%; }
@@ -30,28 +33,86 @@
     color: var(--text);
     font-family: var(--sans);
     min-height: 100dvh;
-    padding: 24px;
-    padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
   }
-  .wrap { max-width: 1100px; margin: 0 auto; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 16px 24px 24px; }
 
-  header { margin-bottom: 16px; }
-  h1 { font-size: 19px; font-weight: 700; margin: 0 0 3px; letter-spacing: 0.2px; }
-  .sub { font-size: 12.5px; color: var(--muted); }
-
-  /* segmented control (raw vs musixmatch) */
-  .segmented {
-    display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; padding: 4px; margin-bottom: 12px;
+  .top-toolbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 9px 16px;
+    padding-top: max(9px, env(safe-area-inset-top));
+    height: var(--toolbar-h);
   }
-  .seg {
-    flex: 1; background: transparent; border: none; color: var(--muted);
-    padding: 9px 10px; border-radius: 7px; font-size: 13px; font-weight: 600;
+  .toolbar-spacer { height: calc(var(--toolbar-h) + env(safe-area-inset-top) + 12px); }
+  .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 6px; }
+  .tb-btn {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    padding: 7px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans); white-space: nowrap;
+  }
+  .tb-btn:hover { border-color: var(--accent); }
+  .tb-btn:disabled { opacity: 0.35; cursor: default; }
+  .tb-btn:disabled:hover { border-color: var(--border); }
+  .icon-btn { padding: 7px 10px; font-size: 15px; line-height: 1; }
+
+  .dropdown-wrap { position: relative; }
+  .dropdown-menu {
+    position: absolute; top: calc(100% + 8px); left: 0; min-width: 210px;
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px; box-shadow: 0 10px 28px rgba(0,0,0,0.45); display: none; z-index: 50;
+  }
+  .dropdown-menu.right { left: auto; right: 0; }
+  .dropdown-menu.wide { min-width: 280px; }
+  .dropdown-menu.open { display: block; }
+
+  .mode-option {
+    display: block; width: 100%; text-align: left; background: transparent; border: none;
+    color: var(--text); padding: 9px 10px; border-radius: 7px; font-size: 13px;
     cursor: pointer; font-family: var(--sans);
   }
-  .seg.active { background: var(--accent); color: var(--accent-text); }
+  .mode-option.active { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+  .mode-option:hover:not(.active) { background: var(--panel); }
 
-  /* meta bar - only shown in musixmatch mode */
+  .word-action-menu {
+    position: fixed; z-index: 60; display: none;
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.5); padding: 4px; max-width: 260px;
+  }
+  .word-action-menu.open { display: block; }
+  .word-action-btn {
+    display: block; width: 100%; text-align: left; background: transparent; border: none;
+    color: var(--text); padding: 9px 12px; font-size: 13px; border-radius: 6px;
+    cursor: pointer; font-family: var(--sans); white-space: normal;
+  }
+  .word-action-btn:hover, .word-action-btn:active { background: var(--panel); }
+  .word-action-btn.edit-action { color: var(--ok); }
+  .word-action-btn.suggest-action { color: var(--suggest); }
+
+  header { margin-bottom: 14px; }
+  h1 { font-size: 17px; font-weight: 700; margin: 0 0 2px; letter-spacing: 0.2px; }
+  .sub { font-size: 12px; color: var(--muted); }
+
+  .mm-toggle-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 14px; margin-bottom: 12px;
+  }
+  .mm-label { font-size: 13.5px; font-weight: 700; }
+  .mm-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute; cursor: pointer; inset: 0; background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 999px; transition: 0.15s;
+  }
+  .switch .slider::before {
+    content: ""; position: absolute; height: 18px; width: 18px; left: 2px; top: 1px;
+    background: var(--muted); border-radius: 50%; transition: 0.15s;
+  }
+  .switch input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+  .switch input:checked + .slider::before { transform: translateX(18px); background: var(--accent-text); }
+
   .meta-bar {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -81,12 +142,7 @@
   .meta-more { display: none; }
   .meta-more.open { display: flex; }
 
-  /* toolbar row: badge + more options */
-  .toolbar-row {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 10px; gap: 8px; flex-wrap: wrap;
-  }
-  .badge-row { display: none; }
+  .badge-row { display: none; margin-bottom: 10px; }
   .badge-row.visible { display: block; }
   .badge {
     display: inline-block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px;
@@ -96,26 +152,6 @@
   .badge.ok { color: var(--ok); border-color: var(--ok); }
   .badge.warn { color: var(--warn); border-color: var(--warn); }
 
-  button.btn {
-    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
-    padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
-    cursor: pointer; font-family: var(--sans);
-  }
-  button.btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
-  button.btn.ghost { background: transparent; color: var(--muted); border-color: var(--border); }
-  button.btn:active { transform: translateY(1px); }
-  button.btn.copied { background: var(--ok); color: #0e1420; border-color: var(--ok); }
-
-  /* more options dropdown */
-  .more-options-panel {
-    display: none;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-    margin-bottom: 14px;
-  }
-  .more-options-panel.open { display: block; }
   .option-group { margin-bottom: 14px; }
   .option-group:last-child { margin-bottom: 0; }
   .option-group > label.section-label {
@@ -128,16 +164,29 @@
   }
   .checkbox-row input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
   .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-  .replace-tool .replace-row { display: flex; gap: 8px; margin-top: 6px; }
-  .replace-tool input {
-    flex: 1; min-width: 0; background: var(--panel-2); border: 1px solid var(--border);
+  button.btn {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans);
+  }
+  button.btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  button.btn.ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+  button.btn:active { transform: translateY(1px); }
+  button.btn.copied { background: var(--ok); color: #0e1420; border-color: var(--ok); }
+
+  .search-field label {
+    display: block; font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .search-row { display: flex; gap: 8px; }
+  .search-row input {
+    flex: 1; min-width: 0; background: var(--panel); border: 1px solid var(--border);
     color: var(--text); padding: 8px 10px; border-radius: 8px;
     font-family: var(--sans); font-size: 13px;
   }
-  .replace-tool input:focus { outline: none; border-color: var(--accent); }
-  .replace-hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .search-row input:focus { outline: none; border-color: var(--accent); }
+  .search-hint { font-size: 11px; color: var(--muted); margin-top: 8px; }
 
-  /* main grid */
   .editor-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -164,8 +213,8 @@
   }
   .btn-row { display: flex; gap: 8px; }
 
-  .mode-box { display: none; flex: 1; }
-  .mode-box.active { display: flex; flex-direction: column; flex: 1; }
+  .mode-box { display: none; flex: 1; flex-direction: column; }
+  .mode-box.active { display: flex; }
 
   textarea {
     width: 100%;
@@ -204,12 +253,24 @@
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
   }
+  .bd-line.flag {
+    background: var(--flag-bg);
+    border-left: 2px solid var(--warn);
+    padding-left: 4px;
+    margin-left: -6px;
+  }
   .bd-line.over {
     background: var(--danger-bg);
     border-left: 2px solid var(--danger);
     padding-left: 4px;
     margin-left: -6px;
   }
+  .bd-line.over.flag {
+    background: repeating-linear-gradient(45deg, var(--danger-bg), var(--danger-bg) 6px, var(--flag-bg) 6px, var(--flag-bg) 12px);
+    border-left: 2px solid var(--danger);
+  }
+  .bd-word.edit { border-bottom: 2px solid var(--ok); pointer-events: auto; }
+  .bd-word.suggest { border-bottom: 2px dotted var(--suggest); pointer-events: auto; }
   .editor-wrap textarea {
     background: transparent;
     color: var(--text);
@@ -221,13 +282,20 @@
 
   .legend {
     margin-top: 14px; font-size: 11.5px; color: var(--muted);
-    display: flex; gap: 8px; align-items: center;
+    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
   }
-  .legend .dot { width: 8px; height: 8px; border-radius: 2px; background: var(--danger); display: inline-block; }
+  .legend .item { display: flex; align-items: center; gap: 6px; }
+  .legend .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .legend .dot.over { background: var(--danger); }
+  .legend .dot.flag { background: var(--warn); }
+  .legend .bar { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
+  .legend .bar.edit { background: var(--ok); }
+  .legend .bar.suggest { background: var(--suggest); }
 
   @media (max-width: 760px) {
-    body { padding: 14px; }
-    h1 { font-size: 17px; }
+    .wrap { padding: 14px 14px 14px; }
+    h1 { font-size: 16px; }
+    .tb-btn { padding: 7px 9px; font-size: 12px; }
     .editor-grid { grid-template-columns: 1fr; gap: 12px; }
     .meta-row { flex-direction: column; gap: 8px; }
     textarea, .backdrop { font-size: 16px; padding: 12px; }
@@ -236,21 +304,81 @@
     .panel-header { flex-direction: column; align-items: stretch; }
     .btn-row { justify-content: stretch; }
     button.btn { flex: 1; min-height: 38px; }
-    .replace-tool .replace-row { flex-direction: column; }
-    .toolbar-row { flex-direction: column; align-items: stretch; }
+    .search-row { flex-direction: column; }
+    .dropdown-menu { position: fixed; left: 10px !important; right: 10px !important; width: auto; }
   }
 </style>
 </head>
 <body>
+
+<div class="top-toolbar" id="topToolbar">
+  <div class="toolbar-left">
+    <div class="dropdown-wrap">
+      <button class="tb-btn" id="moreOptionsBtn">⋯ More options</button>
+      <div class="dropdown-menu" id="moreOptionsMenu">
+        <div class="option-group">
+          <label class="section-label">Automatic fixes</label>
+          <label class="checkbox-row"><input type="checkbox" id="toggleCap" checked> Capitalize line starts &amp; standalone "I"</label>
+          <label class="checkbox-row"><input type="checkbox" id="toggleApos" checked> Fix clipped-word apostrophes (em → 'em, goin → goin')</label>
+          <label class="checkbox-row"><input type="checkbox" id="toggleComma" checked> Fix spacing around commas</label>
+        </div>
+        <div class="option-group">
+          <label class="section-label">Quick tools (apply once to Result)</label>
+          <div class="action-buttons">
+            <button class="btn ghost" id="collapseBlanksBtn">Collapse extra blank lines</button>
+            <button class="btn ghost" id="trimSpacesBtn">Trim trailing spaces</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dropdown-wrap">
+      <button class="tb-btn" id="modeDropdownBtn">Raw Lyrics ▾</button>
+      <div class="dropdown-menu" id="modeDropdownMenu">
+        <button class="mode-option active" data-mode="raw">Raw Lyrics</button>
+        <button class="mode-option" data-mode="musix">Musixmatch / TTML</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar-right">
+    <div class="dropdown-wrap">
+      <button class="tb-btn icon-btn" id="searchBtn" title="Find &amp; replace">🔍</button>
+      <div class="dropdown-menu right wide" id="searchMenu">
+        <div class="search-field">
+          <label>Find &amp; replace (applies to Result)</label>
+          <div class="search-row">
+            <input type="text" id="findInput" placeholder="Find..." value="****">
+            <input type="text" id="replaceInput" placeholder="Replace with...">
+          </div>
+        </div>
+        <div class="action-buttons" style="margin-top:8px;">
+          <button class="btn primary" id="replaceAllBtn">Replace All</button>
+        </div>
+        <div class="search-hint">Defaults to finding **** (handy for filling in Musixmatch's censored words) — leave "replace with" blank to just remove matches.</div>
+      </div>
+    </div>
+    <button class="tb-btn icon-btn" id="undoBtn" title="Undo" disabled>↶</button>
+    <button class="tb-btn icon-btn" id="redoBtn" title="Redo" disabled>↷</button>
+  </div>
+</div>
+<div class="toolbar-spacer"></div>
+
 <div class="wrap">
   <header>
     <h1>Lyrics Studio</h1>
-    <div class="sub">Format raw lyrics or convert Musixmatch/TTML — edit the result directly, live.</div>
+    <div class="sub">Right-click (or long-press on mobile) a green/violet word in Result for its action.</div>
   </header>
 
-  <div class="segmented">
-    <button class="seg active" data-mode="raw">Raw Lyrics</button>
-    <button class="seg" data-mode="musix">Musixmatch / TTML</button>
+  <div class="mm-toggle-row">
+    <div>
+      <div class="mm-label">Musixmatch guidelines</div>
+      <div class="mm-sub">Auto-fixes punctuation, numbers, section tags &amp; repeats — green underline = auto-fixed, violet dotted = suggestion, amber = flagged for your review.</div>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="toggleMM" checked>
+      <span class="slider"></span>
+    </label>
   </div>
 
   <div class="meta-bar" id="metaBar">
@@ -265,35 +393,7 @@
     <button class="meta-toggle" id="metaToggle">+ album / writer</button>
   </div>
 
-  <div class="toolbar-row">
-    <div class="badge-row" id="badgeRow"><span class="badge" id="formatBadge">waiting for input</span></div>
-    <button class="btn ghost" id="moreOptionsBtn">⋯ More options</button>
-  </div>
-
-  <div class="more-options-panel" id="moreOptionsPanel">
-    <div class="option-group">
-      <label class="section-label">Automatic fixes</label>
-      <label class="checkbox-row"><input type="checkbox" id="toggleCap" checked> Capitalize line starts &amp; standalone "I"</label>
-      <label class="checkbox-row"><input type="checkbox" id="toggleApos" checked> Fix clipped-word apostrophes (em → 'em, goin → goin')</label>
-      <label class="checkbox-row"><input type="checkbox" id="toggleComma" checked> Fix spacing around commas</label>
-    </div>
-    <div class="option-group">
-      <label class="section-label">Quick tools (apply once to Result)</label>
-      <div class="action-buttons">
-        <button class="btn ghost" id="collapseBlanksBtn">Collapse extra blank lines</button>
-        <button class="btn ghost" id="trimSpacesBtn">Trim trailing spaces</button>
-      </div>
-    </div>
-    <div class="option-group replace-tool">
-      <label class="section-label">Find &amp; replace (applies to Result)</label>
-      <div class="replace-row">
-        <input type="text" id="findInput" placeholder="Find..." value="****">
-        <input type="text" id="replaceInput" placeholder="Replace with...">
-        <button class="btn primary" id="replaceAllBtn">Replace All</button>
-      </div>
-      <div class="replace-hint">Defaults to finding **** (handy for filling in Musixmatch's censored words) — leave "replace with" blank to just remove matches.</div>
-    </div>
-  </div>
+  <div class="badge-row" id="badgeRow"><span class="badge" id="formatBadge">waiting for input</span></div>
 
   <div class="editor-grid">
     <div class="panel">
@@ -304,7 +404,7 @@
       </div>
 
       <div class="mode-box" id="musixModeBox">
-        <textarea id="musixInput" placeholder="Paste [mm:ss.xx] timed lyrics, or a TTML export..." spellcheck="false"></textarea>
+        <textarea id="musixInput" placeholder="Paste [mm:ss.xx] timed lyrics or a TTML export..." spellcheck="false"></textarea>
         <div class="notice" id="parseNotice"></div>
       </div>
     </div>
@@ -313,7 +413,7 @@
       <div class="panel-header">
         <div class="stats" id="resultStats">0 lines</div>
         <div class="btn-row">
-          <button class="btn ghost" id="regenBtn" title="Re-generate from Input, discarding manual edits">↻</button>
+          <button class="btn ghost" id="regenBtn" title="Re-generate from Input, discarding manual edits and undo history">↻</button>
           <button class="btn" id="copyBtn">Copy</button>
           <button class="btn primary" id="downloadBtn">Download .txt</button>
         </div>
@@ -326,7 +426,16 @@
     </div>
   </div>
 
-  <div class="legend"><span class="dot"></span>Line over 70 characters</div>
+  <div class="legend">
+    <div class="item"><span class="dot over"></span>Over 70 characters</div>
+    <div class="item"><span class="dot flag"></span>Flagged for review</div>
+    <div class="item"><span class="bar edit"></span>Auto-fixed (right-click / long-press)</div>
+    <div class="item"><span class="bar suggest"></span>Suggestion (right-click / long-press)</div>
+  </div>
+</div>
+
+<div class="word-action-menu" id="wordActionMenu">
+  <button class="word-action-btn" id="wordActionBtn"></button>
 </div>
 
 <script>
@@ -334,7 +443,7 @@
 const CHAR_LIMIT = 70;
 
 const FRONT_CLIPPED = new Set([
-  'em','cause','cuz','cus','cos','coz','bout','round','cept','nuff',
+  'em','cause','bout','round','cept','nuff',
   'gainst','fraid','tis','twas','kay','fore','neath','specially','sup'
 ]);
 
@@ -360,18 +469,71 @@ const REAL_IN_WORDS = new Set([
   'javelin','dolphin','penguin','pumpkin','napkin','latin','akin','ain'
 ]);
 
-// tokenizer includes both straight (') and curly (’) apostrophes so words that
-// ALREADY have an apostrophe (typed or pasted with a curly quote) are captured
-// whole and never touched again — this is what fixes the double-apostrophe bug.
+const CAUSE_VARIANTS = new Set(['cuz', 'cus', 'coz', 'becuz', 'becoz', 'beacuz']);
+
+const FLAGGED_SHORTHAND = new Set([
+  'u', 'ur', 'r', 'y', 'b4', 'gr8', 'l8r', 'thx', 'plz', 'pls',
+  'dis', 'dat', 'wat', 'wut', 'wuz', 'tho', 'thru', 'nite', 'sumthin', 'sumtin'
+]);
+
+const ABBREV_SUGGEST = {
+  'ts': 'this shit',
+  'bih': 'bitch',
+  'w': 'with',
+  'bc': 'because',
+  'rn': 'right now',
+  'tbh': 'to be honest',
+  'idk': "i don't know",
+  'ngl': 'not gonna lie',
+  'fr': 'for real',
+  'ig': 'i guess'
+};
+
+const SECTION_LABEL_RE = /^[\[\(]?\s*(chorus|verse\s*\d*|pre-?chorus|bridge|intro|outro|hook\s*\d*|refrain|interlude|breakdown|drop)\s*[\]\)]?\s*:?\s*$/i;
+
+const ONES = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const TENS = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+
+function numberToWords(n) {
+  if (n < 20) return ONES[n];
+  if (n < 100) {
+    const tens = Math.floor(n / 10), ones = n % 10;
+    return TENS[tens] + (ones ? '-' + ONES[ones] : '');
+  }
+  return 'one hundred';
+}
+
 const WORD_RE = /[A-Za-z'’]+/g;
 
-function processWordApostrophe(word) {
-  if (word.includes("'") || word.includes('\u2019')) return word; // already has one, leave it alone
+let revertedTokens = new Set();
+let revertedLabels = new Set();
+
+function processWordApostrophe(word, mm) {
+  if (revertedTokens.has(word.toLowerCase())) return word;
+  if (word.includes("'") || word.includes('\u2019')) return word;
   const lower = word.toLowerCase();
+  if (mm && CAUSE_VARIANTS.has(lower)) return "'cause";
   if (FRONT_CLIPPED.has(lower)) return "'" + word;
   if (BACK_CLIPPED.has(lower)) return word + "'";
   if (lower.length > 4 && lower.endsWith('in') && !REAL_IN_WORDS.has(lower)) return word + "'";
   return word;
+}
+
+function numberSpellout(token, mm) {
+  if (!mm) return token;
+  if (revertedTokens.has(token)) return token;
+  const n = parseInt(token, 10);
+  if (n >= 0 && n <= 100) return numberToWords(n);
+  return token;
+}
+
+function sectionLabelDisplay(rawLine, mm) {
+  if (!mm) return null;
+  const trimmed = rawLine.trim();
+  if (trimmed === '' || revertedLabels.has(trimmed)) return null;
+  const m = trimmed.match(SECTION_LABEL_RE);
+  if (!m) return null;
+  return '#' + m[1].toUpperCase().replace(/[\s-]+/g, '');
 }
 
 function capitalizeFirstLetter(line) {
@@ -382,17 +544,30 @@ function capitalizeFirstLetter(line) {
 
 function fixCommaSpacing(line) {
   return line
-    .replace(/\s+,/g, ',')          // no space before a comma
-    .replace(/,(?=\S)/g, ', ')      // exactly one space after, unless end of line
-    .replace(/,\s{2,}/g, ', ');     // collapse multiple spaces after a comma
+    .replace(/\s+,/g, ',')
+    .replace(/,(?=\S)/g, ', ')
+    .replace(/,\s{2,}/g, ', ');
+}
+
+function applyMusixmatchPunctuation(line) {
+  if (line.trim() === '') return line;
+  let l = line;
+  l = l.replace(/[:;]/g, ',');
+  l = l.replace(/!{2,}/g, '!');
+  l = l.replace(/\?{2,}/g, '?');
+  l = fixCommaSpacing(l);
+  l = l.replace(/[.,]\s*$/, '');
+  return l;
 }
 
 function processLine(rawLine, opts) {
-  opts = opts || { cap: true, apos: true, comma: true };
+  opts = opts || { cap: true, apos: true, comma: true, mm: true };
   if (rawLine.trim() === '') return '';
   let line = rawLine;
   if (opts.comma) line = fixCommaSpacing(line);
-  if (opts.apos) line = line.replace(WORD_RE, processWordApostrophe);
+  if (opts.mm) line = applyMusixmatchPunctuation(line);
+  if (opts.apos) line = line.replace(WORD_RE, w => processWordApostrophe(w, opts.mm));
+  if (opts.mm) line = line.replace(/\b\d+\b/g, tok => numberSpellout(tok, opts.mm));
   if (opts.cap) {
     line = line.replace(/\bi\b/g, 'I');
     line = capitalizeFirstLetter(line);
@@ -400,12 +575,163 @@ function processLine(rawLine, opts) {
   return line;
 }
 
+function formatLinesOnly(text, opts) {
+  return text.split('\n').map(l => processLine(l, opts)).join('\n');
+}
+
+function collapseBlankLines(lines) {
+  const out = [];
+  let prevBlank = false;
+  for (const l of lines) {
+    const isBlank = l.trim() === '';
+    if (isBlank && prevBlank) continue;
+    out.push(l);
+    prevBlank = isBlank;
+  }
+  return out;
+}
+
+function expandMultiplierLines(rawLines) {
+  const out = [];
+  for (const line of rawLines) {
+    const m = line.match(/^(.*?)\s*[\(\[]?\s*[xX]\s*(\d{1,2})\s*[\)\]]?\s*$/) ||
+              line.match(/^(.*?)\s*[\(\[]?\s*(\d{1,2})\s*[xX]\s*[\)\]]?\s*$/);
+    if (m) {
+      const base = m[1].trim();
+      const count = parseInt(m[2], 10);
+      if (base && count >= 2 && count <= 20) {
+        for (let i = 0; i < count; i++) out.push(base);
+        continue;
+      }
+    }
+    out.push(line);
+  }
+  return out;
+}
+
+function processLineTracked(rawLine, opts) {
+  if (rawLine.trim() === '') return { display: '', edits: [], suggestions: [] };
+
+  let line = rawLine;
+  if (opts.comma) line = fixCommaSpacing(line);
+  if (opts.mm) line = applyMusixmatchPunctuation(line);
+
+  const tokenRe = /[0-9]+|[A-Za-z'’]+|[^0-9A-Za-z'’]+/g;
+  const tokens = line.match(tokenRe) || [];
+  let out = '';
+  const edits = [];
+  const suggestions = [];
+
+  for (const token of tokens) {
+    if (/^[0-9]+$/.test(token)) {
+      const words = numberSpellout(token, opts.mm);
+      if (words !== token) {
+        edits.push({ start: out.length, end: out.length + words.length, type: 'number', original: token, display: words });
+        out += words;
+      } else {
+        out += token;
+      }
+    } else if (/^[A-Za-z'’]+$/.test(token)) {
+      const newWord = opts.apos ? processWordApostrophe(token, opts.mm) : token;
+      if (newWord !== token) {
+        edits.push({ start: out.length, end: out.length + newWord.length, type: 'apostrophe', original: token, display: newWord });
+        out += newWord;
+      } else {
+        if (opts.mm) {
+          const lower = token.toLowerCase();
+          if (ABBREV_SUGGEST[lower] && !token.includes("'") && !token.includes('\u2019')) {
+            suggestions.push({ start: out.length, end: out.length + token.length, trigger: token, replacement: ABBREV_SUGGEST[lower] });
+          }
+        }
+        out += token;
+      }
+    } else {
+      out += token;
+    }
+  }
+
+  let display = out;
+  if (opts.cap) {
+    display = display.replace(/\bi\b/g, 'I');
+    display = capitalizeFirstLetter(display);
+  }
+
+  return { display, edits, suggestions };
+}
+
+function buildTrackedResult(text, opts) {
+  let rawLines = text.split('\n');
+  if (opts.mm) {
+    rawLines = expandMultiplierLines(rawLines);
+    rawLines = collapseBlankLines(rawLines);
+  }
+
+  const outLines = [];
+  const allEdits = [];
+  const allSuggestions = [];
+  let globalOffset = 0;
+
+  for (const rawLine of rawLines) {
+    let lineResult;
+    const labelTag = sectionLabelDisplay(rawLine, opts.mm);
+    if (labelTag) {
+      lineResult = { display: labelTag, edits: [{ start: 0, end: labelTag.length, type: 'label', original: rawLine, display: labelTag }], suggestions: [] };
+    } else {
+      lineResult = processLineTracked(rawLine, opts);
+    }
+
+    for (const e of lineResult.edits) allEdits.push({ ...e, start: e.start + globalOffset, end: e.end + globalOffset });
+    for (const s of lineResult.suggestions) allSuggestions.push({ ...s, start: s.start + globalOffset, end: s.end + globalOffset });
+
+    outLines.push(lineResult.display);
+    globalOffset += lineResult.display.length + 1;
+  }
+
+  return { display: outLines.join('\n'), edits: allEdits, suggestions: allSuggestions };
+}
+
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/"/g, '&quot;');
+}
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getLineFlags(line, opts) {
+  if (!opts.mm) return [];
+  const trimmed = line.trim();
+  if (!trimmed) return [];
+  const flags = [];
+
+  if (/(.)\1{2,}/.test(trimmed)) {
+    flags.push('possible exaggerated spelling (repeated letters) — prefer standard spelling, e.g. "oh" not "ohhh"');
+  }
+  if (/[()]/.test(trimmed)) {
+    flags.push('parentheses — only meant for background vocals per guidelines');
+  }
+  if (/[–—]/.test(trimmed)) {
+    flags.push('em/en dash — only appropriate for stutters/interruptions, otherwise prefer a comma');
+  }
+  if (/\b([a-z]{1,3})\1{2,}\b/i.test(trimmed)) {
+    flags.push('repeated syllables glued together — separate with commas or hyphens, e.g. "la-la-la"');
+  }
+  const letters = trimmed.replace(/[^A-Za-z]/g, '');
+  if (letters.length > 4 && letters === letters.toUpperCase()) {
+    flags.push('entire line is capitalized — use normal sentence case unless it\'s a real acronym');
+  }
+  const numbers = trimmed.match(/\b\d+\b/g) || [];
+  if (numbers.some(n => parseInt(n, 10) > 100)) {
+    flags.push('contains a number over 100 — consider spelling it out, e.g. "two thousand"');
+  }
+  const words = trimmed.match(WORD_RE) || [];
+  const badWords = [...new Set(words.map(w => w.toLowerCase()).filter(w => FLAGGED_SHORTHAND.has(w)))];
+  if (badWords.length) {
+    flags.push(`possible non-standard shorthand: ${badWords.join(', ')} — spell out in full`);
+  }
+  return flags;
 }
 
 /* ================= LRC / TTML engine ================= */
@@ -467,7 +793,8 @@ function buildLrcFromTimed(lines, meta, opts) {
   const out = buildMetaHeader(meta);
   out.push('');
   for (const l of lines) {
-    const formatted = processLine(l.text, opts);
+    const labelTag = sectionLabelDisplay(l.text, opts.mm);
+    const formatted = labelTag || processLine(l.text, opts);
     out.push(l.malformed ? formatted : `[${l.time}]${formatted}`);
   }
   return out.join('\n');
@@ -524,7 +851,8 @@ function buildFromTtml(parsed, meta, opts) {
     out.push('');
     for (const section of parsed.sections) {
       for (const line of section) {
-        const formatted = processLine(line.text, opts);
+        const labelTag = sectionLabelDisplay(line.text, opts.mm);
+        const formatted = labelTag || processLine(line.text, opts);
         out.push(line.ms !== null ? `${msToLrcTimestamp(line.ms)}${formatted}` : formatted);
       }
       out.push('');
@@ -534,7 +862,10 @@ function buildFromTtml(parsed, meta, opts) {
   } else {
     const out = [];
     for (const section of parsed.sections) {
-      out.push(section.map(l => processLine(l.text, opts)).join('\n'));
+      out.push(section.map(l => {
+        const labelTag = sectionLabelDisplay(l.text, opts.mm);
+        return labelTag || processLine(l.text, opts);
+      }).join('\n'));
     }
     return { text: out.join('\n\n'), ext: 'txt' };
   }
@@ -550,10 +881,11 @@ function checkParseIssues(flatLines) {
 
 /* ================= Result analysis (live) ================= */
 
-function computeResultAnalysis(text, opts) {
+function computeResultAnalysis(text, opts, extra) {
   const lines = text.split('\n');
   let overCount = 0;
   let longWordCount = 0;
+  let flaggedCount = 0;
   let consecutive = 0;
   let sawBreak = true;
   let noBreakWarning = false;
@@ -572,26 +904,62 @@ function computeResultAnalysis(text, opts) {
     if (stripped.length > CHAR_LIMIT) overCount++;
     const wc = stripped.trim().split(/\s+/).filter(Boolean).length;
     wordTotal += wc;
-    if (opts.checkWordCount && wc > 6) longWordCount++;
+    if (extra.checkWordCount && wc > 6) longWordCount++;
+    if (getLineFlags(stripped, opts).length) flaggedCount++;
     if (consecutive > 10 && !sawBreak) noBreakWarning = true;
     sawBreak = false;
   }
 
-  return { lyricLineCount, overCount, longWordCount, noBreakWarning, wordTotal };
+  return { lyricLineCount, overCount, longWordCount, noBreakWarning, wordTotal, flaggedCount };
 }
 
-function renderBackdrop(text) {
+function renderBackdrop(text, opts) {
   const lines = text.split('\n');
-  const html = lines.map(line => {
+  let globalOffset = 0;
+  const htmlParts = [];
+
+  for (const line of lines) {
     const trimmed = line.trim();
     const isMeta = /^\[(ti|ar|al|au|offset):/i.test(trimmed);
-    const stripped = line.replace(/^\[\d{1,2}:\d{2}(?:\.\d+)?\]\s?/, '');
-    const over = !isMeta && stripped.length > CHAR_LIMIT;
-    const cls = over ? 'bd-line over' : 'bd-line';
-    const content = escapeHtml(line) || ' ';
-    return `<span class="${cls}">${content}</span>`;
-  }).join('\n');
-  backdrop.innerHTML = html;
+    const strippedForLen = line.replace(/^\[\d{1,2}:\d{2}(?:\.\d+)?\]\s?/, '');
+    const over = !isMeta && strippedForLen.length > CHAR_LIMIT;
+    const flags = isMeta ? [] : getLineFlags(strippedForLen, opts);
+
+    const lineStart = globalOffset;
+    const lineEnd = globalOffset + line.length;
+    const markers = [
+      ...currentEdits.filter(e => e.start >= lineStart && e.end <= lineEnd).map(e => ({ ...e, kind: 'edit' })),
+      ...currentSuggestions.filter(s => s.start >= lineStart && s.end <= lineEnd).map(s => ({ ...s, kind: 'suggest' }))
+    ].sort((a, b) => a.start - b.start);
+
+    let lineHtml = '';
+    let cursor = 0;
+    for (const m of markers) {
+      const relStart = m.start - lineStart;
+      const relEnd = m.end - lineStart;
+      if (relStart < cursor || relEnd > line.length) continue;
+      if (relStart > cursor) lineHtml += escapeHtml(line.slice(cursor, relStart));
+      const segment = escapeHtml(line.slice(relStart, relEnd)) || ' ';
+      if (m.kind === 'edit') {
+        lineHtml += `<span class="bd-word edit" data-start="${m.start}" data-end="${m.end}">${segment}</span>`;
+      } else {
+        lineHtml += `<span class="bd-word suggest" data-start="${m.start}" data-end="${m.end}">${segment}</span>`;
+      }
+      cursor = relEnd;
+    }
+    if (cursor < line.length) lineHtml += escapeHtml(line.slice(cursor));
+    if (!lineHtml) lineHtml = ' ';
+
+    const classes = ['bd-line'];
+    if (over) classes.push('over');
+    if (flags.length) classes.push('flag');
+    const titleAttr = flags.length ? ` title="${escapeAttr(flags.join(' • '))}"` : '';
+
+    htmlParts.push(`<span class="${classes.join(' ')}"${titleAttr}>${lineHtml}</span>`);
+    globalOffset += line.length + 1;
+  }
+
+  backdrop.innerHTML = htmlParts.join('\n');
 }
 
 /* ================= UI wiring ================= */
@@ -604,7 +972,6 @@ const metaBar = document.getElementById('metaBar');
 const metaToggle = document.getElementById('metaToggle');
 const metaMore = document.getElementById('metaMore');
 
-const segs = document.querySelectorAll('.seg');
 const rawModeBox = document.getElementById('rawModeBox');
 const musixModeBox = document.getElementById('musixModeBox');
 const rawInput = document.getElementById('rawInput');
@@ -614,8 +981,15 @@ const badgeRow = document.getElementById('badgeRow');
 const formatBadge = document.getElementById('formatBadge');
 const parseNotice = document.getElementById('parseNotice');
 
+const toggleMM = document.getElementById('toggleMM');
+
 const moreOptionsBtn = document.getElementById('moreOptionsBtn');
-const moreOptionsPanel = document.getElementById('moreOptionsPanel');
+const moreOptionsMenu = document.getElementById('moreOptionsMenu');
+const modeDropdownBtn = document.getElementById('modeDropdownBtn');
+const modeDropdownMenu = document.getElementById('modeDropdownMenu');
+const searchBtn = document.getElementById('searchBtn');
+const searchMenu = document.getElementById('searchMenu');
+
 const toggleCap = document.getElementById('toggleCap');
 const toggleApos = document.getElementById('toggleApos');
 const toggleComma = document.getElementById('toggleComma');
@@ -625,6 +999,9 @@ const findInput = document.getElementById('findInput');
 const replaceInput = document.getElementById('replaceInput');
 const replaceAllBtn = document.getElementById('replaceAllBtn');
 
+const undoBtn = document.getElementById('undoBtn');
+const redoBtn = document.getElementById('redoBtn');
+
 const resultBox = document.getElementById('resultBox');
 const backdrop = document.getElementById('backdrop');
 const resultStats = document.getElementById('resultStats');
@@ -633,23 +1010,43 @@ const copyBtn = document.getElementById('copyBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const regenBtn = document.getElementById('regenBtn');
 
+const wordActionMenu = document.getElementById('wordActionMenu');
+const wordActionBtn = document.getElementById('wordActionBtn');
+
 let currentInputMode = 'raw';
 let currentExt = 'txt';
+let currentEdits = [];
+let currentSuggestions = [];
+
+function closeAllDropdowns() {
+  moreOptionsMenu.classList.remove('open');
+  modeDropdownMenu.classList.remove('open');
+  searchMenu.classList.remove('open');
+}
+function toggleDropdown(menu) {
+  const willOpen = !menu.classList.contains('open');
+  closeAllDropdowns();
+  if (willOpen) menu.classList.add('open');
+}
+moreOptionsBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleDropdown(moreOptionsMenu); });
+modeDropdownBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleDropdown(modeDropdownMenu); });
+searchBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleDropdown(searchMenu); if (searchMenu.classList.contains('open')) findInput.focus(); });
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.dropdown-wrap')) closeAllDropdowns();
+  if (!e.target.closest('.word-action-menu')) hideWordActionMenu();
+});
 
 metaToggle.addEventListener('click', () => {
   metaMore.classList.toggle('open');
   metaToggle.textContent = metaMore.classList.contains('open') ? '– hide extra fields' : '+ album / writer';
 });
 
-moreOptionsBtn.addEventListener('click', () => {
-  moreOptionsPanel.classList.toggle('open');
-});
-
-segs.forEach(btn => {
+document.querySelectorAll('.mode-option').forEach(btn => {
   btn.addEventListener('click', () => {
-    segs.forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.mode-option').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentInputMode = btn.dataset.mode;
+    modeDropdownBtn.textContent = (currentInputMode === 'raw' ? 'Raw Lyrics' : 'Musixmatch / TTML') + ' ▾';
 
     rawModeBox.classList.toggle('active', currentInputMode === 'raw');
     musixModeBox.classList.toggle('active', currentInputMode === 'musix');
@@ -657,6 +1054,7 @@ segs.forEach(btn => {
     badgeRow.classList.toggle('visible', currentInputMode === 'musix');
     inputLabel.textContent = currentInputMode === 'raw' ? 'Raw Lyrics' : 'Musixmatch / TTML';
 
+    closeAllDropdowns();
     generateResult(true);
   });
 });
@@ -671,19 +1069,23 @@ function getMeta() {
 }
 
 function getFormatOpts() {
-  return { cap: toggleCap.checked, apos: toggleApos.checked, comma: toggleComma.checked };
+  return { cap: toggleCap.checked, apos: toggleApos.checked, comma: toggleComma.checked, mm: toggleMM.checked };
 }
 
 function generateResult(force) {
-  if (!force && document.activeElement === resultBox) return; // don't clobber manual edits
+  if (!force && document.activeElement === resultBox) return;
   const opts = getFormatOpts();
 
   if (currentInputMode === 'raw') {
-    const rawLines = rawInput.value.split('\n');
-    resultBox.value = rawLines.map(l => processLine(l, opts)).join('\n');
+    const result = buildTrackedResult(rawInput.value, opts);
+    resultBox.value = result.display;
+    currentEdits = result.edits;
+    currentSuggestions = result.suggestions;
     currentExt = 'txt';
     parseNotice.textContent = '';
   } else {
+    currentEdits = [];
+    currentSuggestions = [];
     const raw = musixInput.value;
     const fmt = detectFormat(raw);
     const labels = { empty: 'waiting for input', ttml: 'TTML detected', lrc: 'timed lyrics detected', unknown: 'format not recognized' };
@@ -713,56 +1115,263 @@ function generateResult(force) {
     }
   }
   updateResultView();
+  pushHistory(false);
 }
 
 function updateResultView() {
+  const opts = getFormatOpts();
   const text = resultBox.value;
-  renderBackdrop(text);
-  const analysis = computeResultAnalysis(text, { checkWordCount: currentExt === 'lrc' });
+  renderBackdrop(text, opts);
+  const analysis = computeResultAnalysis(text, opts, { checkWordCount: currentExt === 'lrc' });
 
   let statsText = `${analysis.lyricLineCount} line${analysis.lyricLineCount !== 1 ? 's' : ''} • ${analysis.wordTotal} words`;
+  if (currentEdits.length) statsText += ` • ${currentEdits.length} auto-fixed`;
+  if (currentSuggestions.length) statsText += ` • ${currentSuggestions.length} suggestion${currentSuggestions.length !== 1 ? 's' : ''}`;
   if (analysis.overCount) statsText += ` • ${analysis.overCount} over ${CHAR_LIMIT} chars`;
+  if (analysis.flaggedCount) statsText += ` • ${analysis.flaggedCount} flagged`;
   resultStats.textContent = statsText;
 
   const warnings = [];
   if (analysis.longWordCount) warnings.push(`${analysis.longWordCount} line(s) are longer than ~6 words — DistroKid recommends short sync lines.`);
-  if (analysis.noBreakWarning) warnings.push(`No blank-line section breaks detected — DistroKid suggests not exceeding ~10 lines without a break.`);
+  if (analysis.noBreakWarning) warnings.push(`No blank-line section breaks detected — guidelines suggest not exceeding ~10 lines without a break.`);
+  if (analysis.flaggedCount) warnings.push(`${analysis.flaggedCount} line(s) flagged for manual review — hover the amber-highlighted lines in Result.`);
   warningsEl.textContent = warnings.length ? '⚠ ' + warnings.join('\n') : '';
 
   downloadBtn.textContent = `Download .${currentExt}`;
 }
+
+function computeDiffMapper(oldText, newText) {
+  let p = 0;
+  const maxP = Math.min(oldText.length, newText.length);
+  while (p < maxP && oldText[p] === newText[p]) p++;
+  let s = 0;
+  const maxS = Math.min(oldText.length - p, newText.length - p);
+  while (s < maxS && oldText[oldText.length - 1 - s] === newText[newText.length - 1 - s]) s++;
+  const lenDelta = newText.length - oldText.length;
+  return function mapOffset(offset) {
+    if (offset <= p) return offset;
+    if (offset >= oldText.length - s) return offset + lenDelta;
+    return newText.length - s;
+  };
+}
+
+function remapTrackedItems(mapOffset, newText) {
+  function remapList(list, expectFn) {
+    const out = [];
+    for (const item of list) {
+      const ns = mapOffset(item.start);
+      const ne = mapOffset(item.end);
+      if (ns >= ne || ne > newText.length) continue;
+      if (newText.slice(ns, ne) !== expectFn(item)) continue;
+      out.push({ ...item, start: ns, end: ne });
+    }
+    return out;
+  }
+  currentEdits = remapList(currentEdits, e => e.display);
+  currentSuggestions = remapList(currentSuggestions, s => s.trigger);
+}
+
+function commitResultText(rawValue, coalesce) {
+  const opts = getFormatOpts();
+  const oldValue = resultBox.value;
+  const selStart = resultBox.selectionStart;
+  const selEnd = resultBox.selectionEnd;
+
+  const formatted = formatLinesOnly(rawValue, opts);
+
+  const mapOffset = computeDiffMapper(oldValue, formatted);
+  remapTrackedItems(mapOffset, formatted);
+
+  resultBox.value = formatted;
+  const newStart = mapOffset(selStart);
+  const newEnd = mapOffset(selEnd);
+  try { resultBox.setSelectionRange(newStart, newEnd); } catch (e) {}
+
+  updateResultView();
+  pushHistory(!!coalesce);
+}
+
+let historyStack = [];
+let historyIndex = -1;
+let lastPushTime = 0;
+const TYPING_COALESCE_MS = 700;
+
+function snapshotState() {
+  return {
+    value: resultBox.value,
+    edits: currentEdits.map(e => ({ ...e })),
+    suggestions: currentSuggestions.map(s => ({ ...s })),
+    revertedTokens: new Set(revertedTokens),
+    revertedLabels: new Set(revertedLabels),
+  };
+}
+
+function pushHistory(coalesce) {
+  const snap = snapshotState();
+  const now = Date.now();
+  if (coalesce && historyStack.length && historyIndex === historyStack.length - 1 && (now - lastPushTime) < TYPING_COALESCE_MS) {
+    historyStack[historyIndex] = snap;
+  } else {
+    historyStack = historyStack.slice(0, historyIndex + 1);
+    historyStack.push(snap);
+    historyIndex = historyStack.length - 1;
+  }
+  lastPushTime = now;
+  updateUndoRedoButtons();
+}
+
+function restoreSnapshot(snap) {
+  resultBox.value = snap.value;
+  currentEdits = snap.edits.map(e => ({ ...e }));
+  currentSuggestions = snap.suggestions.map(s => ({ ...s }));
+  revertedTokens = new Set(snap.revertedTokens);
+  revertedLabels = new Set(snap.revertedLabels);
+  updateResultView();
+  updateUndoRedoButtons();
+}
+
+function undo() {
+  if (historyIndex <= 0) return;
+  historyIndex--;
+  restoreSnapshot(historyStack[historyIndex]);
+}
+function redo() {
+  if (historyIndex >= historyStack.length - 1) return;
+  historyIndex++;
+  restoreSnapshot(historyStack[historyIndex]);
+}
+function updateUndoRedoButtons() {
+  undoBtn.disabled = historyIndex <= 0;
+  redoBtn.disabled = historyIndex >= historyStack.length - 1;
+}
+
+undoBtn.addEventListener('click', undo);
+redoBtn.addEventListener('click', redo);
+resultBox.addEventListener('keydown', (e) => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  else if (mod && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); redo(); }
+});
+
+function hideWordActionMenu() {
+  wordActionMenu.classList.remove('open');
+}
+
+function showWordActionMenu(wordEl, x, y) {
+  const start = parseInt(wordEl.dataset.start, 10);
+  const end = parseInt(wordEl.dataset.end, 10);
+  const isEdit = wordEl.classList.contains('edit');
+  let label, run;
+
+  if (isEdit) {
+    const edit = currentEdits.find(it => it.start === start && it.end === end);
+    if (!edit) return;
+    label = `Undo → "${edit.original}"`;
+    run = () => {
+      if (edit.type === 'label') revertedLabels.add(edit.original.trim());
+      else revertedTokens.add(edit.original.toLowerCase());
+      const oldValue = resultBox.value;
+      const newValue = oldValue.slice(0, edit.start) + edit.original + oldValue.slice(edit.end);
+      commitResultText(newValue, false);
+    };
+    wordActionBtn.className = 'word-action-btn edit-action';
+  } else {
+    const sug = currentSuggestions.find(it => it.start === start && it.end === end);
+    if (!sug) return;
+    label = `Apply → "${sug.replacement}"`;
+    run = () => {
+      const oldValue = resultBox.value;
+      const newValue = oldValue.slice(0, sug.start) + sug.replacement + oldValue.slice(sug.end);
+      commitResultText(newValue, false);
+    };
+    wordActionBtn.className = 'word-action-btn suggest-action';
+  }
+
+  wordActionBtn.textContent = label;
+  wordActionBtn.onclick = () => { run(); hideWordActionMenu(); };
+
+  wordActionMenu.classList.add('open');
+  const menuWidth = 240;
+  const left = Math.min(Math.max(8, x), window.innerWidth - menuWidth - 8);
+  const top = Math.min(y + 6, window.innerHeight - 60);
+  wordActionMenu.style.left = left + 'px';
+  wordActionMenu.style.top = top + 'px';
+}
+
+function findWordElAtPoint(x, y) {
+  const stack = document.elementsFromPoint(x, y);
+  return stack.find(el => el.classList && el.classList.contains('bd-word'));
+}
+
+resultBox.addEventListener('contextmenu', (e) => {
+  const wordEl = findWordElAtPoint(e.clientX, e.clientY);
+  if (!wordEl) return;
+  e.preventDefault();
+  showWordActionMenu(wordEl, e.clientX, e.clientY);
+});
+
+let longPressTimer = null;
+let longPressStart = null;
+resultBox.addEventListener('touchstart', (e) => {
+  if (e.touches.length !== 1) return;
+  const t = e.touches[0];
+  longPressStart = { x: t.clientX, y: t.clientY };
+  longPressTimer = setTimeout(() => {
+    const wordEl = findWordElAtPoint(t.clientX, t.clientY);
+    longPressTimer = null;
+    if (wordEl) {
+      if (navigator.vibrate) navigator.vibrate(10);
+      showWordActionMenu(wordEl, t.clientX, t.clientY);
+    }
+  }, 480);
+}, { passive: true });
+resultBox.addEventListener('touchmove', (e) => {
+  if (!longPressStart || !longPressTimer) return;
+  const t = e.touches[0];
+  if (Math.abs(t.clientX - longPressStart.x) > 10 || Math.abs(t.clientY - longPressStart.y) > 10) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+}, { passive: true });
+resultBox.addEventListener('touchend', () => {
+  if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+});
 
 rawInput.addEventListener('input', () => generateResult(false));
 musixInput.addEventListener('input', () => generateResult(false));
 [titleEl, artistEl, albumEl, writerEl].forEach(el => {
   el.addEventListener('input', () => { if (currentInputMode === 'musix') generateResult(false); });
 });
-[toggleCap, toggleApos, toggleComma].forEach(el => {
+[toggleCap, toggleApos, toggleComma, toggleMM].forEach(el => {
   el.addEventListener('change', () => generateResult(true));
 });
 
-resultBox.addEventListener('input', updateResultView);
+resultBox.addEventListener('input', () => commitResultText(resultBox.value, true));
 resultBox.addEventListener('scroll', () => { backdrop.scrollTop = resultBox.scrollTop; backdrop.scrollLeft = resultBox.scrollLeft; });
 
-regenBtn.addEventListener('click', () => generateResult(true));
+regenBtn.addEventListener('click', () => {
+  revertedTokens = new Set();
+  revertedLabels = new Set();
+  generateResult(true);
+});
 
 collapseBlanksBtn.addEventListener('click', () => {
-  resultBox.value = resultBox.value.replace(/\n{3,}/g, '\n\n');
-  updateResultView();
+  commitResultText(resultBox.value.replace(/\n{3,}/g, '\n\n'), false);
+  closeAllDropdowns();
 });
 
 trimSpacesBtn.addEventListener('click', () => {
-  resultBox.value = resultBox.value.split('\n').map(l => l.replace(/[ \t]+$/, '')).join('\n');
-  updateResultView();
+  commitResultText(resultBox.value.split('\n').map(l => l.replace(/[ \t]+$/, '')).join('\n'), false);
+  closeAllDropdowns();
 });
 
 replaceAllBtn.addEventListener('click', () => {
   const findVal = findInput.value;
   if (!findVal) return;
-  const replaceVal = replaceInput.value; // blank means "remove the matches"
+  const replaceVal = replaceInput.value;
   const re = new RegExp(escapeRegex(findVal), 'gi');
-  resultBox.value = resultBox.value.replace(re, replaceVal);
-  updateResultView();
+  commitResultText(resultBox.value.replace(re, replaceVal), false);
+  closeAllDropdowns();
 });
 
 copyBtn.addEventListener('click', async () => {
@@ -799,6 +1408,7 @@ downloadBtn.addEventListener('click', () => {
 });
 
 updateResultView();
+pushHistory(false);
 </script>
 </body>
 </html>
